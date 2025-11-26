@@ -102,7 +102,7 @@ public class PantallaMenu implements Screen, GameController{
                 if (Recursos.MUSICA_GENERAL != null) {
                     Recursos.MUSICA_GENERAL.stop();
                     Recursos.MUSICA_GENERAL.setPosition(0);
-                    Recursos.MUSICA_JUEGO.play();
+                 //   Recursos.MUSICA_JUEGO.play();
                 }
             Render.app.setScreen(new PantallaUnJugador());
                 break;
@@ -110,7 +110,7 @@ public class PantallaMenu implements Screen, GameController{
                 ClientThread clientThread = new ClientThread(this);
                 clientThread.start();
                 clientThread.sendMessage("Connect");
-                Render.app.setScreen(new PantallaSeleccionPuntos(this));
+                Render.app.setScreen(new PantallaSeleccionPuntos(this, clientThread));
                 break;
             case 3:
                 Render.app.setScreen(new PantallaConfiguraciones());

@@ -8,6 +8,7 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import trucoarg.elementos.Imagen;
+import trucoarg.network.ClientThread;
 import trucoarg.ui.Boton;
 import trucoarg.utiles.Configuracion;
 import trucoarg.utiles.Recursos;
@@ -15,6 +16,7 @@ import trucoarg.utiles.Render;
 
 public class PantallaSeleccionPuntos implements Screen {
 
+    public ClientThread clientThread;
     private Imagen fondo;
     private SpriteBatch batch;
     private BitmapFont tituloFuente;
@@ -24,9 +26,11 @@ public class PantallaSeleccionPuntos implements Screen {
     private Boton btn15Puntos;
     private Boton btn30Puntos;
 
+
     private final Object gameInstance;
 
-    public PantallaSeleccionPuntos(Object game) {
+    public PantallaSeleccionPuntos(Object game, ClientThread clientThread) {
+        this.clientThread= clientThread;
         this.gameInstance = game;
     }
 
@@ -45,11 +49,13 @@ public class PantallaSeleccionPuntos implements Screen {
                 float y = Configuracion.ALTO - screenY;
 
                 if (btn15Puntos.fueClickeado(screenX, y)) {
+                    clientThread.sendMessage("Setearpuntos:15");
                     iniciarJuego(15);
                     return true;
                 }
 
                 if (btn30Puntos.fueClickeado(screenX, y)) {
+                    clientThread.sendMessage("Setearpuntos:30");
                     iniciarJuego(30);
                     return true;
                 }

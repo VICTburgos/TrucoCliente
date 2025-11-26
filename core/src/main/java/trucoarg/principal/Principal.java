@@ -40,7 +40,7 @@ public class Principal extends Game {
         if (!Recursos.MUSICA_GENERAL.isPlaying()) {
             Recursos.MUSICA_GENERAL.setLooping(true);
             Recursos.MUSICA_GENERAL.setVolume(0.4f);
-            Recursos.MUSICA_GENERAL.play();
+         //   Recursos.MUSICA_GENERAL.play();
         }
     }
 }
