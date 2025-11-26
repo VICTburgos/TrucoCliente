@@ -1,17 +1,20 @@
 package trucoarg.pantallas;
 
+import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import trucoarg.elementos.Imagen;
 import trucoarg.elementos.Texto;
+import trucoarg.network.GameController;
 import trucoarg.ui.EntradasMenu;
 import trucoarg.utiles.Configuracion;
 import trucoarg.utiles.Recursos;
 import trucoarg.utiles.Render;
+import trucoarg.network.ClientThread;
 
-public class PantallaMenu implements Screen {
+public class PantallaMenu implements Screen, GameController{
 
     private Imagen fondo;
     private SpriteBatch b;
@@ -20,6 +23,7 @@ public class PantallaMenu implements Screen {
     private EntradasMenu entradas;
     private int opc = 1;
     private float tiempo = 0;
+    public GameController gameController;
 
     @Override
     public void show() {
@@ -103,6 +107,9 @@ public class PantallaMenu implements Screen {
             Render.app.setScreen(new PantallaUnJugador());
                 break;
             case 2:
+                ClientThread clientThread = new ClientThread(this);
+                clientThread.start();
+                clientThread.sendMessage("Connect");
                 Render.app.setScreen(new PantallaSeleccionPuntos(this));
                 break;
             case 3:
@@ -132,5 +139,15 @@ public class PantallaMenu implements Screen {
     @Override public void dispose() {
         b.dispose();
         fondo.dispose();
+    }
+
+    @Override
+    public void connect(int numPlayer) {
+
+    }
+
+    @Override
+    public void start() {
+
     }
 }

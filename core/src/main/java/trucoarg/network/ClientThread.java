@@ -4,7 +4,7 @@ package trucoarg.network;
 import java.io.IOException;
 import java.net.*;
 
-public class ThreadCliente extends Thread {
+public class ClientThread extends Thread {
 
     private DatagramSocket socket;
     private int serverPort = 5555;
@@ -13,7 +13,7 @@ public class ThreadCliente extends Thread {
     private boolean end = false;
     private GameController gameController;
 
-    public ThreadCliente(GameController gameController) {
+    public ClientThread(GameController gameController) {
         try {
             this.gameController = gameController;
             ipServer = InetAddress.getByName(ipServerStr);
