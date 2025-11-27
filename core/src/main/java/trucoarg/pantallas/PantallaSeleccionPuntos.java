@@ -9,12 +9,13 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import trucoarg.elementos.Imagen;
 import trucoarg.network.ClientThread;
+import trucoarg.network.GameController;
 import trucoarg.ui.Boton;
 import trucoarg.utiles.Configuracion;
 import trucoarg.utiles.Recursos;
 import trucoarg.utiles.Render;
 
-public class PantallaSeleccionPuntos implements Screen {
+public class PantallaSeleccionPuntos implements Screen, GameController {
 
     public ClientThread clientThread;
     private Imagen fondo;
@@ -50,20 +51,19 @@ public class PantallaSeleccionPuntos implements Screen {
 
                 if (btn15Puntos.fueClickeado(screenX, y)) {
                     clientThread.sendMessage("Setearpuntos:15");
-                    iniciarJuego(15);
+                //    iniciarJuego(15);
                     return true;
                 }
 
                 if (btn30Puntos.fueClickeado(screenX, y)) {
                     clientThread.sendMessage("Setearpuntos:30");
-                    iniciarJuego(30);
+                //    iniciarJuego(30);
                     return true;
                 }
 
                 return false;
             }
 
-            // 🆕 Detectar tecla ESC
             @Override
             public boolean keyDown(int keycode) {
                 if (keycode == Input.Keys.ESCAPE) {
@@ -204,5 +204,20 @@ public class PantallaSeleccionPuntos implements Screen {
         if (infoFuente != null) infoFuente.dispose(); // 🆕
         if (btn15Puntos != null) btn15Puntos.dispose();
         if (btn30Puntos != null) btn30Puntos.dispose();
+    }
+
+    @Override
+    public void connect(int numPlayer) {
+
+    }
+
+    @Override
+    public void start() {
+
+    }
+
+    @Override
+    public void iniciarPartida(int puntos) {
+        iniciarJuego(puntos);
     }
 }

@@ -25,6 +25,8 @@ public class PantallaMenu implements Screen, GameController{
     private float tiempo = 0;
     public GameController gameController;
 
+    public ClientThread client;
+
     @Override
     public void show() {
         fondo = new Imagen(Recursos.FONDOMENU);
@@ -107,10 +109,16 @@ public class PantallaMenu implements Screen, GameController{
             Render.app.setScreen(new PantallaUnJugador());
                 break;
             case 2:
-                ClientThread clientThread = new ClientThread(this);
-                clientThread.start();
-                clientThread.sendMessage("Connect");
-                Render.app.setScreen(new PantallaSeleccionPuntos(this, clientThread));
+                PantallaSeleccionPuntos pantallaSeleccion = new PantallaSeleccionPuntos(null, null);
+
+                client = new ClientThread(pantallaSeleccion);
+
+                pantallaSeleccion.clientThread = client;
+
+                client.start();
+                client.sendMessage("Connect");
+
+                Render.app.setScreen(new PantallaSeleccionPuntos(this, client));
                 break;
             case 3:
                 Render.app.setScreen(new PantallaConfiguraciones());
@@ -148,6 +156,11 @@ public class PantallaMenu implements Screen, GameController{
 
     @Override
     public void start() {
+
+    }
+
+    @Override
+    public void iniciarPartida(int puntos) {
 
     }
 }

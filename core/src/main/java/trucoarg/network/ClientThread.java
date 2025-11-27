@@ -1,6 +1,8 @@
 package trucoarg.network;
 
 
+import com.badlogic.gdx.Gdx;
+
 import java.io.IOException;
 import java.net.*;
 
@@ -57,6 +59,11 @@ public class ClientThread extends Thread {
                 break;
             case "Start":
                 this.gameController.start();
+                break;
+
+            case "Iniciar_Partida":
+                int puntos= Integer.parseInt(parts[1]);
+                Gdx.app.postRunnable(() -> gameController.iniciarPartida(puntos));
                 break;
         }
 
