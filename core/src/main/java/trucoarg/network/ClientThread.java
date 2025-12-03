@@ -44,7 +44,7 @@ public class ClientThread extends Thread {
 
         System.out.println("Mensaje recibido: " + message);
 
-        switch(parts[0]){
+        switch(parts[0]) {
             case "AlreadyConnected":
                 System.out.println("Ya estas conectado");
                 break;
@@ -62,8 +62,14 @@ public class ClientThread extends Thread {
                 break;
 
             case "Iniciar_Partida":
-                int puntos= Integer.parseInt(parts[1]);
+                int puntos = Integer.parseInt(parts[1]);
                 Gdx.app.postRunnable(() -> gameController.iniciarPartida(puntos));
+                break;
+
+            case "Repartir":
+                int jugador=Integer.parseInt(parts[1]);
+                int carta=Integer.parseInt(parts[2]);
+                Gdx.app.postRunnable(() -> gameController.repartir(jugador, carta));
                 break;
         }
 

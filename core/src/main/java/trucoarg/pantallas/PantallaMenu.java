@@ -104,9 +104,9 @@ public class PantallaMenu implements Screen, GameController{
                 if (Recursos.MUSICA_GENERAL != null) {
                     Recursos.MUSICA_GENERAL.stop();
                     Recursos.MUSICA_GENERAL.setPosition(0);
-                 //   Recursos.MUSICA_JUEGO.play();
+                    //   Recursos.MUSICA_JUEGO.play();
                 }
-            Render.app.setScreen(new PantallaUnJugador());
+                Render.app.setScreen(new PantallaUnJugador());
                 break;
             case 2:
                 PantallaSeleccionPuntos pantallaSeleccion = new PantallaSeleccionPuntos(null, null);
@@ -161,6 +161,11 @@ public class PantallaMenu implements Screen, GameController{
 
     @Override
     public void iniciarPartida(int puntos) {
+
+    }
+
+    @Override
+    public void repartir(int jugador, int carta) {
 
     }
 }

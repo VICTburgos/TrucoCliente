@@ -7,4 +7,6 @@ public interface GameController {
     void start();
 
     void iniciarPartida(int puntos);
+
+    void repartir(int jugador, int carta);
 }

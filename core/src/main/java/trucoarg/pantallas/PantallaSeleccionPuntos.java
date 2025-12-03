@@ -28,6 +28,8 @@ public class PantallaSeleccionPuntos implements Screen, GameController {
     private Boton btn30Puntos;
 
 
+
+
     private final Object gameInstance;
 
     public PantallaSeleccionPuntos(Object game, ClientThread clientThread) {
@@ -51,13 +53,13 @@ public class PantallaSeleccionPuntos implements Screen, GameController {
 
                 if (btn15Puntos.fueClickeado(screenX, y)) {
                     clientThread.sendMessage("Setearpuntos:15");
-                //    iniciarJuego(15);
+                    //    iniciarJuego(15);
                     return true;
                 }
 
                 if (btn30Puntos.fueClickeado(screenX, y)) {
                     clientThread.sendMessage("Setearpuntos:30");
-                //    iniciarJuego(30);
+                    //    iniciarJuego(30);
                     return true;
                 }
 
@@ -145,8 +147,8 @@ public class PantallaSeleccionPuntos implements Screen, GameController {
 
     private void iniciarJuego(int puntosParaGanar) {
         System.out.println("Iniciando juego a " + puntosParaGanar + " puntos");
-        dispose(); // 🆕 Limpiar recursos antes de cambiar
-        Render.app.setScreen(new PantallaDosJugadores(puntosParaGanar));
+        dispose();
+        Render.app.setScreen(new PantallaDosJugadores(puntosParaGanar, this));
     }
 
     // 🆕 Método para volver al menú
@@ -219,5 +221,10 @@ public class PantallaSeleccionPuntos implements Screen, GameController {
     @Override
     public void iniciarPartida(int puntos) {
         iniciarJuego(puntos);
+    }
+
+    @Override
+    public void repartir(int jugador, int carta) {
+
     }
 }

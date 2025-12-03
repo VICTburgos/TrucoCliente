@@ -1,5 +1,6 @@
 package trucoarg.pantallas;
 
+import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
@@ -8,6 +9,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 
 import trucoarg.elementos.Imagen;
+import trucoarg.network.GameController;
 import trucoarg.personajesDosJugadores.JuegoTruco;
 import trucoarg.personajesDosJugadores.JugadorBase;
 import trucoarg.personajesSolitario.CartaSolitario;
@@ -20,7 +22,7 @@ import trucoarg.utiles.Render;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PantallaDosJugadores implements Screen {
+public class PantallaDosJugadores implements Screen, GameController {
 
     private Imagen fondo;
     private SpriteBatch batch;
@@ -28,6 +30,7 @@ public class PantallaDosJugadores implements Screen {
     private JuegoTruco juego;
     private JugadorBase jugador1;
     private JugadorBase jugador2;
+    private GameController gameController;
 
     private final List<CartaSolitario> jugadasJ1 = new ArrayList<>();
     private final List<CartaSolitario> jugadasJ2 = new ArrayList<>();
@@ -65,13 +68,14 @@ public class PantallaDosJugadores implements Screen {
     private float tiempoVictoria = 0f;
     private static final float TIEMPO_MOSTRAR_VICTORIA = 3f;
 
-    public PantallaDosJugadores(int puntosParaGanar) {
+    public PantallaDosJugadores(int puntosParaGanar, GameController gameController) {
         this.puntosParaGanar = puntosParaGanar;
+        this.gameController= gameController;
     }
 
-    public PantallaDosJugadores() {
-        this(15);
-    }
+    //public PantallaDosJugadores() {
+    //     this(15);
+    //}
 
     @Override
     public void show() {
@@ -621,5 +625,25 @@ public class PantallaDosJugadores implements Screen {
         fuente.dispose();
         if (fuenteVictoria != null) fuenteVictoria.dispose();
         if (fuenteCanto != null) fuenteCanto.dispose();
+    }
+
+    @Override
+    public void connect(int numPlayer) {
+
+    }
+
+    @Override
+    public void start() {
+
+    }
+
+    @Override
+    public void iniciarPartida(int puntos) {
+
+    }
+
+    @Override
+    public void repartir(int jugador, int carta) {
+        System.out.println("hola, se sta  haciebndo bien ");
     }
 }
