@@ -83,6 +83,7 @@ public class PantallaMenu implements Screen, GameController{
             }
         }
     }
+
     private void cargarOpcionesCentradas() {
         int avance = 60;
         int yInicial = 500;
@@ -91,9 +92,7 @@ public class PantallaMenu implements Screen, GameController{
             OPCIONES[i] = new Texto(Recursos.FUENTE_MENU, 60, Color.WHITE, true);
             OPCIONES[i].setTexto(TEXTOS[i]);
 
-
             float xCentrado = (Configuracion.ANCHO - OPCIONES[i].getAncho()) / 2;
-
             OPCIONES[i].setPosicion(xCentrado, yInicial - (i * avance));
         }
     }
@@ -104,12 +103,12 @@ public class PantallaMenu implements Screen, GameController{
                 if (Recursos.MUSICA_GENERAL != null) {
                     Recursos.MUSICA_GENERAL.stop();
                     Recursos.MUSICA_GENERAL.setPosition(0);
-                    //   Recursos.MUSICA_JUEGO.play();
                 }
                 Render.app.setScreen(new PantallaUnJugador());
                 break;
+
             case 2:
-                PantallaSeleccionPuntos pantallaSeleccion = new PantallaSeleccionPuntos(null, null);
+                PantallaSeleccionPuntos pantallaSeleccion = new PantallaSeleccionPuntos(this, null);
 
                 client = new ClientThread(pantallaSeleccion);
 
@@ -118,8 +117,9 @@ public class PantallaMenu implements Screen, GameController{
                 client.start();
                 client.sendMessage("Connect");
 
-                Render.app.setScreen(new PantallaSeleccionPuntos(this, client));
+                Render.app.setScreen(pantallaSeleccion);
                 break;
+
             case 3:
                 Render.app.setScreen(new PantallaConfiguraciones());
                 break;
@@ -132,18 +132,10 @@ public class PantallaMenu implements Screen, GameController{
         }
     }
 
-    @Override public void resize(int width, int height) {
-
-    }
-    @Override public void pause() {
-
-    }
-    @Override public void resume() {
-
-    }
-    @Override public void hide() {
-
-    }
+    @Override public void resize(int width, int height) {}
+    @Override public void pause() {}
+    @Override public void resume() {}
+    @Override public void hide() {}
     @Override public void dispose() {
         b.dispose();
         fondo.dispose();
@@ -151,21 +143,21 @@ public class PantallaMenu implements Screen, GameController{
 
     @Override
     public void connect(int numPlayer) {
-
+        // Implementación si es necesaria
     }
 
     @Override
     public void start() {
-
+        // Implementación si es necesaria
     }
 
     @Override
     public void iniciarPartida(int puntos) {
-
+        // Implementación si es necesaria
     }
 
     @Override
     public void repartir(int jugador, int carta) {
-
+        // Implementación si es necesaria
     }
 }

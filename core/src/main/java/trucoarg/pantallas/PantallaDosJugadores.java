@@ -644,6 +644,6 @@ public class PantallaDosJugadores implements Screen, GameController {
 
     @Override
     public void repartir(int jugador, int carta) {
-        System.out.println("hola, se sta  haciebndo bien ");
+        System.out.println("Repartiendo carta " + carta + " al jugador " + jugador);
     }
 }

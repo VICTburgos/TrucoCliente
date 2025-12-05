@@ -22,18 +22,19 @@ public class PantallaSeleccionPuntos implements Screen, GameController {
     private SpriteBatch batch;
     private BitmapFont tituloFuente;
     private BitmapFont subtituloFuente;
-    private BitmapFont infoFuente; // 🆕 Fuente para el mensaje de ESC
+    private BitmapFont infoFuente;
 
     private Boton btn15Puntos;
     private Boton btn30Puntos;
 
-
-
-
     private final Object gameInstance;
 
+    // ✅ Variables para almacenar las cartas recibidas
+    private int numPlayer = -1;
+    private boolean esperandoCartas = false;
+
     public PantallaSeleccionPuntos(Object game, ClientThread clientThread) {
-        this.clientThread= clientThread;
+        this.clientThread = clientThread;
         this.gameInstance = game;
     }
 
@@ -53,13 +54,11 @@ public class PantallaSeleccionPuntos implements Screen, GameController {
 
                 if (btn15Puntos.fueClickeado(screenX, y)) {
                     clientThread.sendMessage("Setearpuntos:15");
-                    //    iniciarJuego(15);
                     return true;
                 }
 
                 if (btn30Puntos.fueClickeado(screenX, y)) {
                     clientThread.sendMessage("Setearpuntos:30");
-                    //    iniciarJuego(30);
                     return true;
                 }
 
@@ -97,7 +96,6 @@ public class PantallaSeleccionPuntos implements Screen, GameController {
             paramSubtitulo.color = new Color(0.9f, 0.9f, 0.9f, 1f);
             subtituloFuente = generator.generateFont(paramSubtitulo);
 
-            // 🆕 Fuente para el mensaje de ESC
             FreeTypeFontGenerator.FreeTypeFontParameter paramInfo =
                 new FreeTypeFontGenerator.FreeTypeFontParameter();
             paramInfo.size = 24;
@@ -145,16 +143,24 @@ public class PantallaSeleccionPuntos implements Screen, GameController {
         btn30Puntos.setColor(amarillo, new Color(0.2f, 0.2f, 0.2f, 1f), borde);
     }
 
+    // En PantallaSeleccionPuntos
     private void iniciarJuego(int puntosParaGanar) {
         System.out.println("Iniciando juego a " + puntosParaGanar + " puntos");
+        PantallaDosJugadores pantallaJuego = new PantallaDosJugadores(puntosParaGanar, this);
+
+
+        clientThread.gameController = pantallaJuego;
+
         dispose();
-        Render.app.setScreen(new PantallaDosJugadores(puntosParaGanar, this));
+        Render.app.setScreen(pantallaJuego);
     }
 
-    // 🆕 Método para volver al menú
     private void volverAlMenu() {
         System.out.println("Volviendo al menú principal...");
-        dispose(); // Limpiar recursos antes de cambiar
+        if (clientThread != null) {
+            clientThread.terminate();
+        }
+        dispose();
         Render.app.setScreen(new PantallaMenu());
     }
 
@@ -176,9 +182,14 @@ public class PantallaSeleccionPuntos implements Screen, GameController {
         float subtituloY = Configuracion.ALTO - 250;
         subtituloFuente.draw(batch, subtitulo, subtituloX, subtituloY);
 
-        // 🆕 Mostrar mensaje de ESC
         String mensajeEsc = "ESC para volver al menú principal...";
         infoFuente.draw(batch, mensajeEsc, 50, 650);
+
+        // ✅ Mostrar estado de conexión
+        if (numPlayer >= 0) {
+            String mensajeJugador = "Jugador " + numPlayer + " conectado";
+            infoFuente.draw(batch, mensajeJugador, 50, 600);
+        }
 
         btn15Puntos.dibujar(batch);
         btn30Puntos.dibujar(batch);
@@ -203,28 +214,31 @@ public class PantallaSeleccionPuntos implements Screen, GameController {
         if (fondo != null) fondo.dispose();
         if (tituloFuente != null) tituloFuente.dispose();
         if (subtituloFuente != null) subtituloFuente.dispose();
-        if (infoFuente != null) infoFuente.dispose(); // 🆕
+        if (infoFuente != null) infoFuente.dispose();
         if (btn15Puntos != null) btn15Puntos.dispose();
         if (btn30Puntos != null) btn30Puntos.dispose();
     }
 
     @Override
     public void connect(int numPlayer) {
-
+        this.numPlayer = numPlayer;
+        System.out.println("Cliente conectado como jugador: " + numPlayer);
     }
 
     @Override
     public void start() {
-
+        System.out.println("Partida iniciada desde servidor");
     }
 
     @Override
     public void iniciarPartida(int puntos) {
+        System.out.println("Iniciando partida con " + puntos + " puntos");
         iniciarJuego(puntos);
     }
 
     @Override
     public void repartir(int jugador, int carta) {
+        System.out.println("Repartiendo carta " + carta + " al jugador " + jugador);
 
     }
 }

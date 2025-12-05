@@ -13,7 +13,7 @@ public class ClientThread extends Thread {
     private String ipServerStr = "255.255.255.255";
     private InetAddress ipServer;
     private boolean end = false;
-    private GameController gameController;
+    public GameController gameController;
 
     public ClientThread(GameController gameController) {
         try {
