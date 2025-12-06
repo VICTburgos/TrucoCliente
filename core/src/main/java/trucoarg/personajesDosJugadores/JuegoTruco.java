@@ -54,8 +54,8 @@ public class JuegoTruco {
         jugador1EsMano = !jugador1EsMano;
         manoOriginal = jugador1EsMano ? 1 : 2;
 
-        jugador1 = new JugadorBase("Jugador 1", mazo, jugador1EsMano);
-        jugador2 = new JugadorBase("Jugador 2", mazo, !jugador1EsMano);
+        jugador1 = new JugadorBase( 1, jugador1EsMano);
+        jugador2 = new JugadorBase( 2, !jugador1EsMano);
 
         manoTerminada = false;
         tiradaActual = 1;

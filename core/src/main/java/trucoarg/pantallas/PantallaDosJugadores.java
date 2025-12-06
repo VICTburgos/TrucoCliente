@@ -1,6 +1,5 @@
 package trucoarg.pantallas;
 
-import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
@@ -10,11 +9,11 @@ import com.badlogic.gdx.math.Vector2;
 
 import trucoarg.elementos.Imagen;
 import trucoarg.network.GameController;
-import trucoarg.personajesDosJugadores.JuegoTruco;
 import trucoarg.personajesDosJugadores.JugadorBase;
 import trucoarg.personajesSolitario.CartaSolitario;
 import trucoarg.ui.Boton;
 import trucoarg.ui.EntradaDosJugadores;
+import trucoarg.utiles.CartasFinales;
 import trucoarg.utiles.Configuracion;
 import trucoarg.utiles.Recursos;
 import trucoarg.utiles.Render;
@@ -22,76 +21,108 @@ import trucoarg.utiles.Render;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Pantalla del juego de Truco para 2 jugadores en modo red.
+ * El SERVIDOR maneja toda la lógica del juego.
+ * El CLIENTE solo dibuja y envía inputs del usuario.
+ */
 public class PantallaDosJugadores implements Screen, GameController {
 
+    // ========== GRÁFICOS ==========
     private Imagen fondo;
     private SpriteBatch batch;
-
-    private JuegoTruco juego;
-    private JugadorBase jugador1;
-    private JugadorBase jugador2;
-    private GameController gameController;
-
-    private final List<CartaSolitario> jugadasJ1 = new ArrayList<>();
-    private final List<CartaSolitario> jugadasJ2 = new ArrayList<>();
-
-    private int puntosParaGanar = 15;
-
-    private final Vector2[] posicionesJugadasJ1 = new Vector2[3];
-    private final Vector2[] posicionesJugadasJ2 = new Vector2[3];
-
-    private Boton btnTruco;
-    private Boton btnRetruco;
-    private Boton btnValeCuatro;
-
-    private Boton btnEnvido;
-    private Boton btnRealEnvido;
-    private Boton btnFaltaEnvido;
-
-    private Boton btnQuiero;
-    private Boton btnNoQuiero;
-
-    // 🆕 BOTÓN IR AL MAZO
-    private Boton btnIrAlMazo;
 
     private BitmapFont fuente;
     private BitmapFont fuenteVictoria;
     private BitmapFont fuenteCanto;
 
-    private String tipoCantoPendiente = null;
+    // ========== JUGADORES ==========
+    private JugadorBase jugador1;
+    private JugadorBase jugador2;
+    private int miNumeroJugador = 0; // 1 o 2 (asignado por el servidor)
 
+    // ========== ESTADO DEL JUEGO (actualizado por el servidor) ==========
+    private int puntosJ1 = 0;
+    private int puntosJ2 = 0;
+    private int puntosParaGanar = 15;
+    private int turnoActual = 1;
+    private boolean juegoTerminado = false;
+
+    // ========== CARTAS JUGADAS EN LA MESA ==========
+    private final List<CartaSolitario> jugadasJ1 = new ArrayList<>();
+    private final List<CartaSolitario> jugadasJ2 = new ArrayList<>();
+    private final Vector2[] posicionesJugadasJ1 = new Vector2[3];
+    private final Vector2[] posicionesJugadasJ2 = new Vector2[3];
+
+    // ========== BOTONES ==========
+    private Boton btnTruco;
+    private Boton btnRetruco;
+    private Boton btnValeCuatro;
+    private Boton btnEnvido;
+    private Boton btnRealEnvido;
+    private Boton btnFaltaEnvido;
+    private Boton btnQuiero;
+    private Boton btnNoQuiero;
+    private Boton btnIrAlMazo;
+
+    // ========== MENSAJES TEMPORALES ==========
     private String mensajeTemporal = "";
     private float tiempoMensajeTemporal = 0f;
     private static final float DURACION_MENSAJE_TEMPORAL = 4f;
 
-    private boolean juegoTerminado = false;
+    // ========== CONTROL DE VICTORIA ==========
     private float tiempoVictoria = 0f;
     private static final float TIEMPO_MOSTRAR_VICTORIA = 3f;
 
-    public PantallaDosJugadores(int puntosParaGanar, GameController gameController) {
-        this.puntosParaGanar = puntosParaGanar;
-        this.gameController= gameController;
+    // ========== REFERENCIA AL CONTROLADOR DE RED ==========
+    private GameController gameController;
+
+    private List<CartaPendiente> cartasPendientesBuffer = null;
+    private boolean cartasPendientesAplicadas = false;
+
+    // Clase auxiliar para guardar cartas en el buffer
+    private static class CartaPendiente {
+        int jugador;
+        int idCarta;
+
+        CartaPendiente(int jugador, int idCarta) {
+            this.jugador = jugador;
+            this.idCarta = idCarta;
+        }
+    }
+    public void setCartasPendientes(List<PantallaSeleccionPuntos.CartaPendiente> cartas) {
+        this.cartasPendientesBuffer = new ArrayList<>();
+        for (PantallaSeleccionPuntos.CartaPendiente cp : cartas) {
+            this.cartasPendientesBuffer.add(new CartaPendiente(cp.jugador, cp.idCarta));
+        }
+        System.out.println("📦 " + cartasPendientesBuffer.size() + " cartas pendientes recibidas");
     }
 
-    //public PantallaDosJugadores() {
-    //     this(15);
-    //}
+    // ========== CONSTRUCTOR ==========
+    public PantallaDosJugadores(int puntosParaGanar, GameController gameController) {
+        this.puntosParaGanar = puntosParaGanar;
+        this.gameController = gameController;
+    }
 
+    // ========== INICIALIZACIÓN ==========
     @Override
     public void show() {
+        // Configurar gráficos
         fondo = new Imagen(Recursos.FONDODOSJUGADORES);
         fondo.dimensionarImg(Configuracion.ANCHO, Configuracion.ALTO);
         batch = Render.batch;
 
-        juego = new JuegoTruco(puntosParaGanar);
-        jugador1 = juego.getJugador1();
-        jugador2 = juego.getJugador2();
+        // Crear jugadores SIN cartas
+        jugador1 = new JugadorBase(1, true);
+        jugador2 = new JugadorBase(2, false);
 
+        // Configurar posiciones en la mesa
         configurarPosicionesMesa();
-        crearBotones();
-        posicionarCartasJugadorAbajo(jugador1.getMano());
-        posicionarCartasJugadorArriba(jugador2.getMano());
 
+        // Crear botones de UI
+        crearBotones();
+
+        // Crear fuentes
         fuente = new BitmapFont();
         fuente.getData().setScale(2f);
         fuente.setColor(Color.WHITE);
@@ -104,15 +135,20 @@ public class PantallaDosJugadores implements Screen, GameController {
         fuenteCanto.getData().setScale(5f);
         fuenteCanto.setColor(new Color(1f, 0.8f, 0.2f, 1f));
 
-        actualizarEstadoBotones();
-
-        Gdx.input.setInputProcessor(new EntradaDosJugadores(
-            jugador1.getMano(),
-            jugador2.getMano(),
-            this
-        ));
+        // ✅ Aplicar cartas pendientes AHORA que todo está inicializado
+        if (cartasPendientesBuffer != null && !cartasPendientesAplicadas) {
+            System.out.println("📦 Aplicando " + cartasPendientesBuffer.size() + " cartas pendientes en show()");
+            for (CartaPendiente cp : cartasPendientesBuffer) {
+                System.out.println("   → Aplicando carta J" + cp.jugador + " ID:" + cp.idCarta);
+                repartir(cp.jugador, cp.idCarta);
+            }
+            cartasPendientesBuffer.clear();
+            cartasPendientesAplicadas = true;
+            System.out.println("✅ Cartas aplicadas exitosamente");
+        }
     }
 
+    // ========== CREACIÓN DE BOTONES ==========
     private void crearBotones() {
         float btnAncho = 150;
         float btnAlto = 50;
@@ -125,8 +161,9 @@ public class PantallaDosJugadores implements Screen, GameController {
         Color borde = new Color(0.2f, 0.4f, 0.6f, 1f);
         Color verde = new Color(0.2f, 0.7f, 0.3f, 0.9f);
         Color rojo = new Color(0.8f, 0.2f, 0.2f, 0.9f);
-        Color naranja = new Color(0.9f, 0.5f, 0.1f, 0.9f); // Para "Ir al Mazo"
+        Color naranja = new Color(0.9f, 0.5f, 0.1f, 0.9f);
 
+        // Botones de TRUCO (lado izquierdo, arriba)
         float trucoPosY = Configuracion.ALTO / 2f + 100;
         btnTruco = new Boton("TRUCO", margen, trucoPosY, btnAncho, btnAlto);
         btnRetruco = new Boton("RETRUCO", margen, trucoPosY - btnAlto - separacion, btnAncho, btnAlto);
@@ -136,6 +173,7 @@ public class PantallaDosJugadores implements Screen, GameController {
         btnRetruco.setColor(azulArg, blanco, borde);
         btnValeCuatro.setColor(azulArg, blanco, borde);
 
+        // Botones de ENVIDO (lado izquierdo, centro)
         float envidoPosY = Configuracion.ALTO / 2f - 50;
         btnEnvido = new Boton("ENVIDO", margen, envidoPosY, btnAncho, btnAlto);
         btnRealEnvido = new Boton("REAL ENVIDO", margen, envidoPosY - btnAlto - separacion, btnAncho, btnAlto);
@@ -145,6 +183,7 @@ public class PantallaDosJugadores implements Screen, GameController {
         btnRealEnvido.setColor(violeta, blanco, borde);
         btnFaltaEnvido.setColor(violeta, blanco, borde);
 
+        // Botones de RESPUESTA (lado derecho)
         float respuestaPosY = Configuracion.ALTO / 2f + 50;
         btnQuiero = new Boton("QUIERO", Configuracion.ANCHO - btnAncho - margen, respuestaPosY, btnAncho, btnAlto);
         btnNoQuiero = new Boton("NO QUIERO", Configuracion.ANCHO - btnAncho - margen, respuestaPosY - btnAlto - separacion, btnAncho, btnAlto);
@@ -152,104 +191,13 @@ public class PantallaDosJugadores implements Screen, GameController {
         btnQuiero.setColor(verde, blanco, borde);
         btnNoQuiero.setColor(rojo, blanco, borde);
 
-        // 🆕 BOTÓN IR AL MAZO - Abajo a la izquierda
+        // Botón IR AL MAZO (lado izquierdo, abajo)
         float mazoPosY = 100;
         btnIrAlMazo = new Boton("IR AL MAZO", margen, mazoPosY, btnAncho, btnAlto);
         btnIrAlMazo.setColor(naranja, blanco, borde);
-    }
 
-    private void mostrarMensajeTemporal(String mensaje) {
-        mensajeTemporal = mensaje;
-        tiempoMensajeTemporal = DURACION_MENSAJE_TEMPORAL;
-    }
-
-    private void actualizarEstadoBotones() {
-        if (juegoTerminado) {
-            ocultarTodosLosBotones();
-            return;
-        }
-
-        boolean hayTrucoPendiente = juego.getGestorTruco().estaEsperandoRespuesta();
-        boolean hayEnvidoPendiente = juego.getGestorEnvido().estaEsperandoRespuesta();
-
-        if (hayTrucoPendiente || hayEnvidoPendiente) {
-            int jugadorResponde = juego.getJugadorQueDebeResponder();
-
-            if (hayTrucoPendiente) {
-                tipoCantoPendiente = "truco";
-                String cantoActual = juego.getGestorTruco().getCantoActual();
-
-                btnTruco.setVisible(false);
-                btnRetruco.setVisible(false);
-                btnValeCuatro.setVisible(false);
-                btnEnvido.setVisible(false);
-                btnRealEnvido.setVisible(false);
-                btnFaltaEnvido.setVisible(false);
-                btnIrAlMazo.setVisible(false); // 🆕
-
-                btnQuiero.setVisible(true);
-                btnNoQuiero.setVisible(true);
-                btnQuiero.setHabilitado(true);
-                btnNoQuiero.setHabilitado(true);
-
-            } else {
-                tipoCantoPendiente = "envido";
-                String cantoActual = juego.getGestorEnvido().getCantoActual();
-
-                btnTruco.setVisible(false);
-                btnRetruco.setVisible(false);
-                btnValeCuatro.setVisible(false);
-                btnIrAlMazo.setVisible(false); // 🆕
-
-                btnQuiero.setVisible(true);
-                btnNoQuiero.setVisible(true);
-                btnQuiero.setHabilitado(true);
-                btnNoQuiero.setHabilitado(true);
-
-                boolean puedeSubirEnvido = juego.getGestorEnvido().puedeSubirConEnvido();
-                boolean puedeSubirReal = juego.getGestorEnvido().puedeSubirConRealEnvido();
-                boolean puedeSubirFalta = juego.getGestorEnvido().puedeSubirConFaltaEnvido();
-
-                btnEnvido.setVisible(puedeSubirEnvido);
-                btnEnvido.setHabilitado(puedeSubirEnvido);
-
-                btnRealEnvido.setVisible(puedeSubirReal);
-                btnRealEnvido.setHabilitado(puedeSubirReal);
-
-                btnFaltaEnvido.setVisible(puedeSubirFalta);
-                btnFaltaEnvido.setHabilitado(puedeSubirFalta);
-            }
-
-        } else {
-            tipoCantoPendiente = null;
-
-            btnQuiero.setVisible(false);
-            btnNoQuiero.setVisible(false);
-
-            boolean manoTerminada = juego.isManoTerminada();
-            int tiradaActual = juego.getTiradaActual();
-
-            btnTruco.setVisible(!manoTerminada);
-            btnRetruco.setVisible(!manoTerminada);
-            btnValeCuatro.setVisible(!manoTerminada);
-            btnIrAlMazo.setVisible(!manoTerminada); // 🆕 Mostrar cuando no hay canto pendiente
-
-            btnTruco.setHabilitado(!manoTerminada);
-            btnRetruco.setHabilitado(!manoTerminada && juego.getGestorTruco().isCantoAceptado());
-            btnValeCuatro.setHabilitado(!manoTerminada && juego.getGestorTruco().isCantoAceptado());
-            btnIrAlMazo.setHabilitado(!manoTerminada); // 🆕 Siempre habilitado
-
-            boolean puedeEnvido = !manoTerminada && tiradaActual == 1 && !juego.isEnvidoYaResuelto();
-
-            btnEnvido.setVisible(puedeEnvido);
-            btnRealEnvido.setVisible(puedeEnvido);
-            btnFaltaEnvido.setVisible(puedeEnvido);
-
-            btnEnvido.setHabilitado(puedeEnvido);
-            btnRealEnvido.setHabilitado(puedeEnvido);
-            btnFaltaEnvido.setHabilitado(puedeEnvido);
-
-        }
+        // TODO: Por ahora ocultar todos los botones hasta que implementes la lógica del servidor
+        ocultarTodosLosBotones();
     }
 
     private void ocultarTodosLosBotones() {
@@ -261,218 +209,20 @@ public class PantallaDosJugadores implements Screen, GameController {
         btnFaltaEnvido.setVisible(false);
         btnQuiero.setVisible(false);
         btnNoQuiero.setVisible(false);
-        btnIrAlMazo.setVisible(false); // 🆕
+        btnIrAlMazo.setVisible(false);
     }
 
-    private void verificarVictoria() {
-        if (juego.hayGanador() && !juegoTerminado) {
-            juegoTerminado = true;
-            tiempoVictoria = 0f;
-            int ganador = juego.getGanadorFinal();
-            actualizarEstadoBotones();
-        }
-    }
-
-    public void jugarCarta(CartaSolitario carta, int jugador) {
-        if (juegoTerminado) return;
-
-        boolean ok = juego.jugarCarta(jugador, carta);
-        if (!ok) return;
-
-        if (jugador == 1) {
-            int idx = jugadasJ1.size();
-            carta.setPosicion(posicionesJugadasJ1[idx]);
-            jugadasJ1.add(carta);
-        } else {
-            int idx = jugadasJ2.size();
-            carta.setPosicion(posicionesJugadasJ2[idx]);
-            jugadasJ2.add(carta);
-        }
-
-        if (jugadasJ1.size() == jugadasJ2.size()) {
-            juego.procesarTirada();
-
-            if (juego.isManoTerminada()) {
-                verificarVictoria();
-                if (juegoTerminado) return;
-
-                juego.reiniciarManoSiCorresponde();
-                jugador1 = juego.getJugador1();
-                jugador2 = juego.getJugador2();
-
-                jugadasJ1.clear();
-                jugadasJ2.clear();
-
-                posicionarCartasJugadorAbajo(jugador1.getMano());
-                posicionarCartasJugadorArriba(jugador2.getMano());
-
-                actualizarInputProcessor();
-            }
-        }
-
-        actualizarEstadoBotones();
-    }
-
-    public void procesarClickBoton(Boton boton) {
-        if (juegoTerminado) return;
-
-        if (boton == btnIrAlMazo) {
-            int turnoActual = juego.getTurnoActual();
-            mostrarMensajeTemporal("¡Jugador " + turnoActual + " se va al mazo!");
-
-            juego.terminarManoAlMazo();
-
-            int ganador = (turnoActual == 1) ? 2 : 1;
-            int puntosTruco = juego.getGestorTruco().getPuntos();
-
-            if (ganador == 1) {
-                juego.agregarPuntosJ1(puntosTruco);
-            } else {
-                juego.agregarPuntosJ2(puntosTruco);
-            }
-
-            verificarVictoria();
-            if (juegoTerminado) return;
-
-            juego.reiniciarManoSiCorresponde();
-            jugador1 = juego.getJugador1();
-            jugador2 = juego.getJugador2();
-
-            jugadasJ1.clear();
-            jugadasJ2.clear();
-
-            posicionarCartasJugadorAbajo(jugador1.getMano());
-            posicionarCartasJugadorArriba(jugador2.getMano());
-
-            actualizarInputProcessor();
-
-            actualizarEstadoBotones();
-            return;
-        }
-
-        // PROCESAR RESPUESTA A CANTOS (QUIERO / NO QUIERO)
-        if (boton == btnQuiero || boton == btnNoQuiero) {
-            if (!juego.hayCantoPendiente()) {
-                return;
-            }
-
-            int jugadorResponde = juego.getJugadorQueDebeResponder();
-            boolean quiero = (boton == btnQuiero);
-
-            int resultado = -1;
-
-            if (tipoCantoPendiente != null && tipoCantoPendiente.equals("truco")) {
-                resultado = juego.responderCanto(jugadorResponde, quiero);
-
-                if (resultado > 0) {
-                    // NO QUIERO - Alguien ganó la mano
-                    verificarVictoria();
-                    if (juegoTerminado) return;
-                    reiniciarManoVisual();
-                } else if (resultado == 0) {
-                    // QUIERO - Se acepta el truco y continúa el juego
-                    mostrarMensajeTemporal("¡QUIERO!");
-                    // 🆕 CRÍTICO: Actualizar botones para que aparezca RETRUCO
-                    actualizarEstadoBotones();
-                }
-
-            } else if (tipoCantoPendiente != null && tipoCantoPendiente.equals("envido")) {
-                resultado = juego.responderEnvido(jugadorResponde, quiero);
-
-                verificarVictoria();
-                if (juegoTerminado) return;
-
-                if (resultado == 0) {
-                    mostrarMensajeTemporal("¡QUIERO ENVIDO!");
-                }
-                // 🆕 CRÍTICO: Actualizar botones después de resolver envido
-                actualizarEstadoBotones();
-            }
-
-            // 🆕 SIEMPRE actualizar botones después de procesar respuesta
-            actualizarEstadoBotones();
-            return;
-        }
-
-        // PROCESAR CANTOS DE TRUCO
-        int turno = juego.getTurnoActual();
-        String tipoCanto = null;
-
-        if (boton == btnTruco) {
-            tipoCanto = "truco";
-        } else if (boton == btnRetruco) {
-            tipoCanto = "retruco";
-        } else if (boton == btnValeCuatro) {
-            tipoCanto = "vale cuatro";
-        }
-
-        if (tipoCanto != null) {
-            if (juego.cantar(turno, tipoCanto)) {
-                mostrarMensajeTemporal("¡" + tipoCanto.toUpperCase() + "!");
-                actualizarEstadoBotones();
-            } else {
-                mostrarMensajeTemporal("No puedes cantar " + tipoCanto.toUpperCase() + " ahora");
-            }
-            return;
-        }
-
-        // PROCESAR CANTOS DE ENVIDO
-        String tipoEnvido = null;
-
-        if (boton == btnEnvido) {
-            tipoEnvido = "envido";
-        } else if (boton == btnRealEnvido) {
-            tipoEnvido = "real envido";
-        } else if (boton == btnFaltaEnvido) {
-            tipoEnvido = "falta envido";
-        }
-
-        if (tipoEnvido != null) {
-            int jugadorQueCanta;
-
-            if (juego.getGestorEnvido().estaEsperandoRespuesta()) {
-                jugadorQueCanta = juego.getJugadorQueDebeResponder();
-            } else {
-                jugadorQueCanta = juego.getTurnoActual();
-            }
-
-            if (juego.cantarEnvido(jugadorQueCanta, tipoEnvido)) {
-                mostrarMensajeTemporal("¡" + tipoEnvido.toUpperCase() + "!");
-                actualizarEstadoBotones();
-            } else {
-                mostrarMensajeTemporal("No puedes cantar " + tipoEnvido.toUpperCase() + " ahora");
-            }
-            return;
-        }
-    }
-
-    private void reiniciarManoVisual() {
-        juego.reiniciarManoSiCorresponde();
-        jugador1 = juego.getJugador1();
-        jugador2 = juego.getJugador2();
-        jugadasJ1.clear();
-        jugadasJ2.clear();
-        posicionarCartasJugadorAbajo(jugador1.getMano());
-        posicionarCartasJugadorArriba(jugador2.getMano());
-
-        actualizarInputProcessor();
-    }
-
-    public Boton[] getBotones() {
-        return new Boton[]{
-            btnTruco, btnRetruco, btnValeCuatro,
-            btnEnvido, btnRealEnvido, btnFaltaEnvido,
-            btnQuiero, btnNoQuiero, btnIrAlMazo // 🆕
-        };
-    }
-
+    // ========== CONFIGURACIÓN DE POSICIONES ==========
     private void configurarPosicionesMesa() {
         float cx = Configuracion.ANCHO / 2f;
         float cy = Configuracion.ALTO / 2f;
+
+        // Posiciones para las cartas jugadas por J1 (abajo en la mesa)
         posicionesJugadasJ1[0] = new Vector2(cx - 300, cy - 120);
         posicionesJugadasJ1[1] = new Vector2(cx - 50, cy - 120);
         posicionesJugadasJ1[2] = new Vector2(cx + 200, cy - 120);
 
+        // Posiciones para las cartas jugadas por J2 (arriba en la mesa)
         posicionesJugadasJ2[0] = new Vector2(cx - 300, cy + 40);
         posicionesJugadasJ2[1] = new Vector2(cx - 50, cy + 40);
         posicionesJugadasJ2[2] = new Vector2(cx + 200, cy + 40);
@@ -483,11 +233,15 @@ public class PantallaDosJugadores implements Screen, GameController {
         float y = Configuracion.ALTO - 650;
         float dx = 250;
 
+        System.out.println("🎯 Posicionando " + mano.size() + " cartas ABAJO");
+
         for (int i = 0; i < mano.size(); i++) {
             CartaSolitario c = mano.get(i);
             c.setSize(100, 200);
             c.setPosicion(new Vector2(x + i * dx, y));
             c.setYaJugadas(false);
+
+            System.out.println("   Carta " + i + ": pos=(" + (x + i * dx) + "," + y + ")");
         }
     }
 
@@ -496,21 +250,34 @@ public class PantallaDosJugadores implements Screen, GameController {
         float y = Configuracion.ALTO - 220;
         float dx = 250;
 
+        System.out.println("🎯 Posicionando " + mano.size() + " cartas ARRIBA");
+
         for (int i = 0; i < mano.size(); i++) {
             CartaSolitario c = mano.get(i);
             c.setSize(100, 200);
             c.setPosicion(new Vector2(x + i * dx, y));
             c.setYaJugadas(false);
+
+            System.out.println("   Carta " + i + ": pos=(" + (x + i * dx) + "," + y + ")");
         }
     }
 
+    // ========== MENSAJES TEMPORALES ==========
+    private void mostrarMensajeTemporal(String mensaje) {
+        mensajeTemporal = mensaje;
+        tiempoMensajeTemporal = DURACION_MENSAJE_TEMPORAL;
+    }
+
+    // ========== RENDER ==========
     @Override
     public void render(float delta) {
+        // Salir al menú con ESC
         if (Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.ESCAPE)) {
             volverAlMenuConMusica();
             return;
         }
 
+        // Actualizar temporizador de mensajes temporales
         if (tiempoMensajeTemporal > 0) {
             tiempoMensajeTemporal -= delta;
             if (tiempoMensajeTemporal <= 0) {
@@ -518,6 +285,7 @@ public class PantallaDosJugadores implements Screen, GameController {
             }
         }
 
+        // Actualizar temporizador de victoria
         if (juegoTerminado) {
             tiempoVictoria += delta;
             if (tiempoVictoria >= TIEMPO_MOSTRAR_VICTORIA) {
@@ -526,22 +294,35 @@ public class PantallaDosJugadores implements Screen, GameController {
             }
         }
 
+        // Limpiar pantalla y comenzar a dibujar
         Render.limpiarPantalla(0, 0, 0);
         batch.begin();
 
+        // Dibujar fondo
         fondo.dibujar();
 
-        for (CartaSolitario c : jugador1.getMano()) c.dibujar(batch);
-        for (CartaSolitario c : jugador2.getMano()) c.dibujar(batch);
+        // Dibujar cartas en las manos
+        for (CartaSolitario c : jugador1.getMano()) {
+            c.dibujar(batch);
+        }
+        for (CartaSolitario c : jugador2.getMano()) {
+            c.dibujar(batch);
+        }
 
-        for (CartaSolitario c : jugadasJ1) c.dibujar(batch);
-        for (CartaSolitario c : jugadasJ2) c.dibujar(batch);
+        // Dibujar cartas jugadas en la mesa
+        for (CartaSolitario c : jugadasJ1) {
+            c.dibujar(batch);
+        }
+        for (CartaSolitario c : jugadasJ2) {
+            c.dibujar(batch);
+        }
 
-        fuente.draw(batch, "J1: " + juego.getPuntosJ1() + " pts", 50, Configuracion.ALTO - 50);
-        fuente.draw(batch, "J2: " + juego.getPuntosJ2() + " pts", 50, Configuracion.ALTO - 100);
-
+        // Dibujar puntos (usando variables locales, no JuegoTruco)
+        fuente.draw(batch, "J1: " + puntosJ1 + " pts", 50, Configuracion.ALTO - 50);
+        fuente.draw(batch, "J2: " + puntosJ2 + " pts", 50, Configuracion.ALTO - 100);
         fuente.draw(batch, "ESC para salir", 50, 650);
 
+        // Dibujar mensaje temporal (ej: "¡TRUCO!", "¡QUIERO!")
         if (!mensajeTemporal.isEmpty()) {
             com.badlogic.gdx.graphics.g2d.GlyphLayout layout =
                 new com.badlogic.gdx.graphics.g2d.GlyphLayout(fuenteCanto, mensajeTemporal);
@@ -553,10 +334,11 @@ public class PantallaDosJugadores implements Screen, GameController {
                 Configuracion.ALTO / 2f + altoTexto / 2f);
         }
 
+        // Dibujar mensaje de victoria
         if (juegoTerminado) {
-            int ganador = juego.getGanadorFinal();
+            int ganador = (puntosJ1 >= puntosParaGanar) ? 1 : 2;
             String msgVictoria = "¡GANÓ JUGADOR " + ganador + "!";
-            String msgPuntos = juego.getPuntosJ1() + " - " + juego.getPuntosJ2();
+            String msgPuntos = puntosJ1 + " - " + puntosJ2;
 
             fuenteVictoria.draw(batch, msgVictoria,
                 Configuracion.ANCHO / 2f - 300,
@@ -571,6 +353,7 @@ public class PantallaDosJugadores implements Screen, GameController {
                 Configuracion.ALTO / 2f - 80);
         }
 
+        // Dibujar botones
         if (btnTruco != null) btnTruco.dibujar(batch);
         if (btnRetruco != null) btnRetruco.dibujar(batch);
         if (btnValeCuatro != null) btnValeCuatro.dibujar(batch);
@@ -579,10 +362,162 @@ public class PantallaDosJugadores implements Screen, GameController {
         if (btnFaltaEnvido != null) btnFaltaEnvido.dibujar(batch);
         if (btnQuiero != null) btnQuiero.dibujar(batch);
         if (btnNoQuiero != null) btnNoQuiero.dibujar(batch);
-        if (btnIrAlMazo != null) btnIrAlMazo.dibujar(batch); // 🆕
+        if (btnIrAlMazo != null) btnIrAlMazo.dibujar(batch);
+
         batch.end();
     }
 
+    // ========== ACCIONES DEL JUGADOR ==========
+
+    /**
+     * Llamado cuando el usuario hace clic en una carta.
+     * TODO: Enviar al servidor en lugar de procesar localmente.
+     */
+    public void jugarCarta(CartaSolitario carta, int jugador) {
+        if (juegoTerminado) return;
+
+        System.out.println("🎴 J" + jugador + " intenta jugar carta ID:" + carta.getId());
+
+        // TODO: Enviar al servidor
+        // gameController.enviarJugada(jugador, carta.getId());
+
+        // Por ahora, solo mostrar mensaje
+        mostrarMensajeTemporal("Carta jugada (TODO: enviar al servidor)");
+    }
+
+    /**
+     * Llamado cuando el usuario hace clic en un botón.
+     * TODO: Enviar al servidor en lugar de procesar localmente.
+     */
+    public void procesarClickBoton(Boton boton) {
+        if (juegoTerminado) return;
+
+        System.out.println("🔘 Click en botón: " + boton.getTexto());
+
+        // TODO: Enviar al servidor
+        // Ejemplo: gameController.enviarCanto(miNumeroJugador, boton.getTexto());
+
+        // Por ahora, solo mostrar mensaje
+        mostrarMensajeTemporal("Botón presionado (TODO: enviar al servidor)");
+    }
+
+    /**
+     * Devuelve el array de botones para el InputProcessor.
+     */
+    public Boton[] getBotones() {
+        return new Boton[]{
+            btnTruco, btnRetruco, btnValeCuatro,
+            btnEnvido, btnRealEnvido, btnFaltaEnvido,
+            btnQuiero, btnNoQuiero, btnIrAlMazo
+        };
+    }
+
+    // ========== IMPLEMENTACIÓN DE GameController (mensajes del servidor) ==========
+
+    /**
+     * Llamado cuando el servidor confirma la conexión.
+     * @param numPlayer Número de jugador asignado (1 o 2)
+     */
+    @Override
+    public void connect(int numPlayer) {
+        System.out.println("✅ Conectado como jugador " + numPlayer);
+        this.miNumeroJugador = numPlayer;
+    }
+
+    /**
+     * Llamado cuando el servidor indica que la partida comienza.
+     */
+    @Override
+    public void start() {
+        System.out.println("🎮 Partida iniciada");
+    }
+
+    /**
+     * Llamado cuando el servidor envía los puntos para ganar.
+     * @param puntos Puntos necesarios para ganar
+     */
+    @Override
+    public void iniciarPartida(int puntos) {
+        System.out.println("🎯 Iniciando partida a " + puntos + " puntos");
+        this.puntosParaGanar = puntos;
+    }
+
+    /**
+     * Llamado cuando el servidor reparte una carta a un jugador.
+     * @param jugador Número de jugador (1 o 2)
+     * @param idCarta ID de la carta a crear
+     */
+    @Override
+    public void repartir(int jugador, int idCarta) {
+        System.out.println("📨 Recibiendo carta ID:" + idCarta + " para jugador " + jugador);
+
+        // Crear la carta visual basándose en el ID recibido
+        CartaSolitario carta = crearCartaPorId(idCarta);
+        if (carta == null) {
+            System.err.println("❌ Error al crear carta con ID: " + idCarta);
+            return;
+        }
+
+        // Agregar la carta a la mano del jugador correspondiente
+        if (jugador == 1) {
+            jugador1.getMano().add(carta);
+            System.out.println("✅ Carta agregada a J1. Total: " + jugador1.getMano().size());
+        } else if (jugador == 2) {
+            jugador2.getMano().add(carta);
+            System.out.println("✅ Carta agregada a J2. Total: " + jugador2.getMano().size());
+        } else {
+            System.err.println("❌ Número de jugador inválido: " + jugador);
+            return;
+        }
+
+        // Reposicionar todas las cartas
+        posicionarCartasJugadorAbajo(jugador1.getMano());
+        posicionarCartasJugadorArriba(jugador2.getMano());
+
+        // Cuando ambos jugadores tienen 3 cartas, activar el InputProcessor
+        if (jugador1.getMano().size() == 3 && jugador2.getMano().size() == 3) {
+            System.out.println("✅ Todas las cartas recibidas - Activando InputProcessor");
+            actualizarInputProcessor();
+        }
+    }
+
+    // ========== MÉTODOS AUXILIARES ==========
+
+    /**
+     * Crea una carta visual a partir de un ID.
+     * @param id ID de la carta (0-39)
+     * @return CartaSolitario o null si el ID es inválido
+     */
+    private CartaSolitario crearCartaPorId(int id) {
+        System.out.println("🔍 Intentando crear carta con ID: " + id);
+
+        // Buscar en el enum CartasFinales
+        for (CartasFinales carta : CartasFinales.values()) {
+            if (carta.getId() == id) {
+                System.out.println("✅ Carta encontrada: " + carta.name());
+                return carta.crearCarta();
+            }
+        }
+
+        System.err.println("❌ No se encontró carta con ID: " + id);
+        return null;
+    }
+
+    /**
+     * Actualiza el InputProcessor con las cartas actuales.
+     */
+    private void actualizarInputProcessor() {
+        System.out.println("🎮 Actualizando InputProcessor");
+        Gdx.input.setInputProcessor(new EntradaDosJugadores(
+            jugador1.getMano(),
+            jugador2.getMano(),
+            this
+        ));
+    }
+
+    /**
+     * Vuelve al menú principal con transición de música.
+     */
     private void volverAlMenuConMusica() {
         if (Recursos.MUSICA_JUEGO != null) {
             Recursos.MUSICA_JUEGO.stop();
@@ -597,19 +532,85 @@ public class PantallaDosJugadores implements Screen, GameController {
         Render.app.setScreen(new PantallaMenu());
     }
 
-    private void actualizarInputProcessor() {
-        System.out.println("Actualizando InputProcessor con nuevas cartas");
-        Gdx.input.setInputProcessor(new EntradaDosJugadores(
-            jugador1.getMano(),
-            jugador2.getMano(),
-            this
-        ));
+    // ========== MÉTODOS ADICIONALES PARA ACTUALIZAR DESDE EL SERVIDOR ==========
+    // TODO: Agregar estos métodos a la interfaz GameController
+
+    /**
+     * Actualiza los puntos de ambos jugadores.
+     * @param puntosJ1 Puntos del jugador 1
+     * @param puntosJ2 Puntos del jugador 2
+     */
+    public void actualizarPuntos(int puntosJ1, int puntosJ2) {
+        this.puntosJ1 = puntosJ1;
+        this.puntosJ2 = puntosJ2;
+
+        // Verificar victoria
+        if (puntosJ1 >= puntosParaGanar || puntosJ2 >= puntosParaGanar) {
+            juegoTerminado = true;
+            tiempoVictoria = 0f;
+            System.out.println("🏆 Juego terminado!");
+        }
     }
 
+    /**
+     * Actualiza el turno actual.
+     * @param turno Jugador que tiene el turno (1 o 2)
+     */
+    public void actualizarTurno(int turno) {
+        this.turnoActual = turno;
+        System.out.println("🔄 Turno actualizado: J" + turno);
+    }
+
+    /**
+     * Mueve una carta a la mesa.
+     * @param jugador Jugador que jugó (1 o 2)
+     * @param idCarta ID de la carta jugada
+     */
+    public void moverCartaAMesa(int jugador, int idCarta) {
+        List<CartaSolitario> mano = (jugador == 1) ? jugador1.getMano() : jugador2.getMano();
+        List<CartaSolitario> jugadas = (jugador == 1) ? jugadasJ1 : jugadasJ2;
+        Vector2[] posiciones = (jugador == 1) ? posicionesJugadasJ1 : posicionesJugadasJ2;
+
+        // Buscar la carta en la mano
+        CartaSolitario cartaJugada = null;
+        for (CartaSolitario c : mano) {
+            if (c.getId() == idCarta) {
+                cartaJugada = c;
+                break;
+            }
+        }
+
+        if (cartaJugada != null) {
+            // Mover a la mesa
+            int indice = jugadas.size();
+            cartaJugada.setPosicion(posiciones[indice]);
+            cartaJugada.setYaJugadas(true);
+            jugadas.add(cartaJugada);
+
+            System.out.println("✅ Carta ID:" + idCarta + " movida a la mesa (J" + jugador + ")");
+        } else {
+            System.err.println("❌ No se encontró carta con ID:" + idCarta + " en la mano de J" + jugador);
+        }
+    }
+
+    /**
+     * Limpia la mesa y reparte nuevas cartas (nueva mano).
+     */
+    public void limpiarMesaYRepartir() {
+        jugadasJ1.clear();
+        jugadasJ2.clear();
+        jugador1.getMano().clear();
+        jugador2.getMano().clear();
+
+        System.out.println("🗑️ Mesa limpiada - Esperando nuevas cartas");
+    }
+
+    // ========== MÉTODOS OBLIGATORIOS DE Screen ==========
     @Override public void resize(int width, int height) {}
     @Override public void pause() {}
     @Override public void resume() {}
     @Override public void hide() {}
+
     @Override
     public void dispose() {
         fondo.dispose();
@@ -621,29 +622,9 @@ public class PantallaDosJugadores implements Screen, GameController {
         btnFaltaEnvido.dispose();
         btnQuiero.dispose();
         btnNoQuiero.dispose();
-        btnIrAlMazo.dispose(); // 🆕
+        btnIrAlMazo.dispose();
         fuente.dispose();
         if (fuenteVictoria != null) fuenteVictoria.dispose();
         if (fuenteCanto != null) fuenteCanto.dispose();
-    }
-
-    @Override
-    public void connect(int numPlayer) {
-
-    }
-
-    @Override
-    public void start() {
-
-    }
-
-    @Override
-    public void iniciarPartida(int puntos) {
-
-    }
-
-    @Override
-    public void repartir(int jugador, int carta) {
-        System.out.println("Repartiendo carta " + carta + " al jugador " + jugador);
     }
 }

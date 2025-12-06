@@ -10,3 +10,4 @@ public interface GameController {
 
     void repartir(int jugador, int carta);
 }
+

@@ -55,7 +55,9 @@ public enum CartasFinales {
     private final PalosCartas PALOS_CARTAS;
     private final String RUTA;
     private final int NIVEL;
-
+    public int getId() {
+        return this.ordinal();
+    }
     CartasFinales(int NUMERO, PalosCartas PALOS_CARTAS, String RUTA, int NIVEL) {
         this.NUMERO = NUMERO;
         this.PALOS_CARTAS = PALOS_CARTAS;
@@ -64,7 +66,7 @@ public enum CartasFinales {
     }
 
     public CartaSolitario crearCarta(){
-        return new CartaSolitario(NUMERO, PALOS_CARTAS, RUTA,390, 60, NIVEL);
+        return new CartaSolitario(NUMERO, PALOS_CARTAS, RUTA,390, 60, NIVEL, this.ordinal());
     }
 }
 

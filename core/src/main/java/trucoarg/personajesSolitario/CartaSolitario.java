@@ -21,11 +21,15 @@ public class CartaSolitario extends Sprite {
 
     private Rectangle qcyo;
 
-    public CartaSolitario(int NUMERO, PalosCartas PALOS_CARTAS, String rutaImagen, float y, float x, int NIVEL) {
+    public int id;
+
+
+    public CartaSolitario(int NUMERO, PalosCartas PALOS_CARTAS, String rutaImagen, float y, float x, int NIVEL, int id) {
         super(new Texture(rutaImagen));
         this.NUMERO = NUMERO;
         this.NIVEL= NIVEL;
         this.PALOS_CARTAS = PALOS_CARTAS;
+        this.id = id;
         posicion = new Vector2(x, y);
         setPosition(posicion.x, posicion.y);
 
@@ -41,6 +45,7 @@ public class CartaSolitario extends Sprite {
     }
     public int getNIVEL(){return NIVEL;}
     public boolean getYaJugadas() { return yaJugadas; }
+    public int getId() {return id;}
     public void setYaJugadas(boolean y) { this.yaJugadas = y; }
 
 

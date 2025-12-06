@@ -1,29 +1,25 @@
 package trucoarg.personajesDosJugadores;
 
 import com.badlogic.gdx.graphics.g2d.Sprite;
-import trucoarg.personajesSolitario.MazoSolitario;
 import trucoarg.personajesSolitario.CartaSolitario;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class JugadorBase extends Sprite {
-    private CartaSolitario carta;
-    private String nombre;
+    private int id; // 1 o 2
     private List<CartaSolitario> mano;
     private boolean esMano;
 
-    public JugadorBase(String nombre, MazoSolitario mazo, boolean esMano) {
-        this.nombre = nombre;
+    // Constructor para red (sin mazo)
+    public JugadorBase(int id, boolean esMano) {
+        this.id = id;
         this.esMano = esMano;
         this.mano = new ArrayList<>();
+    }
 
-        for(int i = 0; i < 3; i++){
-            carta = mazo.sacarCartita();
-            if(carta != null){
-                mano.add(carta);
-            }
-        }
+    public int getId() {
+        return id;
     }
 
     public boolean esMano() {
@@ -38,4 +34,3 @@ public class JugadorBase extends Sprite {
         return mano;
     }
 }
-
