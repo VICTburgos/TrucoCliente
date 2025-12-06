@@ -294,27 +294,30 @@ public class PantallaDosJugadores implements Screen, GameController {
             }
         }
 
-        // Limpiar pantalla y comenzar a dibujar
+
         Render.limpiarPantalla(0, 0, 0);
         batch.begin();
-
-        // Dibujar fondo
         fondo.dibujar();
 
-        // Dibujar cartas en las manos
-        for (CartaSolitario c : jugador1.getMano()) {
-            c.dibujar(batch);
-        }
-        for (CartaSolitario c : jugador2.getMano()) {
-            c.dibujar(batch);
-        }
 
-        // Dibujar cartas jugadas en la mesa
-        for (CartaSolitario c : jugadasJ1) {
-            c.dibujar(batch);
-        }
-        for (CartaSolitario c : jugadasJ2) {
-            c.dibujar(batch);
+        if (miNumeroJugador == 1) {
+            // Soy J1: dibujar mis cartas (J1) abajo
+            for (CartaSolitario c : jugador1.getMano()) {
+                c.dibujar(batch);
+            }
+            // Dibujar cartas del oponente (J2) arriba (dorso)
+            for (CartaSolitario c : jugador2.getMano()) {
+                c.dibujar(batch);
+            }
+        } else if (miNumeroJugador == 2) {
+            // Soy J2: dibujar mis cartas (J2) abajo
+            for (CartaSolitario c : jugador2.getMano()) {
+                c.dibujar(batch);
+            }
+            // Dibujar cartas del oponente (J1) arriba (dorso)
+            for (CartaSolitario c : jugador1.getMano()) {
+                c.dibujar(batch);
+            }
         }
 
         // Dibujar puntos (usando variables locales, no JuegoTruco)
@@ -365,6 +368,15 @@ public class PantallaDosJugadores implements Screen, GameController {
         if (btnIrAlMazo != null) btnIrAlMazo.dibujar(batch);
 
         batch.end();
+    }
+
+    /**
+     * Establece el número de jugador ANTES de show().
+     * CRÍTICO: Debe llamarse antes de setScreen().
+     */
+    public void setMiNumeroJugador(int numero) {
+        this.miNumeroJugador = numero;
+        System.out.println("🎮 Mi número de jugador establecido: " + miNumeroJugador);
     }
 
     // ========== ACCIONES DEL JUGADOR ==========
@@ -441,12 +453,26 @@ public class PantallaDosJugadores implements Screen, GameController {
         System.out.println("🎯 Iniciando partida a " + puntos + " puntos");
         this.puntosParaGanar = puntos;
     }
+    private void posicionarCartasOponenteArriba(List<CartaSolitario> mano) {
+        float x = Configuracion.ANCHO / 2f - 300;
+        float y = Configuracion.ALTO - 220;
+        float dx = 250;
 
-    /**
-     * Llamado cuando el servidor reparte una carta a un jugador.
-     * @param jugador Número de jugador (1 o 2)
-     * @param idCarta ID de la carta a crear
-     */
+        System.out.println("🎯 Posicionando " + mano.size() + " cartas OPONENTE (dorso)");
+
+        for (int i = 0; i < mano.size(); i++) {
+            CartaSolitario c = mano.get(i);
+            c.setSize(100, 200);
+            c.setPosicion(new Vector2(x + i * dx, y));
+            c.setYaJugadas(false);
+
+            // ✅ Cambiar la textura al dorso
+            c.mostrarDorso();
+
+            System.out.println("   Carta " + i + " OPONENTE: pos=(" + (x + i * dx) + "," + y + ") [DORSO]");
+        }
+    }
+
     @Override
     public void repartir(int jugador, int idCarta) {
         System.out.println("📨 Recibiendo carta ID:" + idCarta + " para jugador " + jugador);
@@ -470,9 +496,16 @@ public class PantallaDosJugadores implements Screen, GameController {
             return;
         }
 
-        // Reposicionar todas las cartas
-        posicionarCartasJugadorAbajo(jugador1.getMano());
-        posicionarCartasJugadorArriba(jugador2.getMano());
+        //  NUEVO: Posicionar solo las cartas del jugador actual
+        if (miNumeroJugador == 1) {
+            // Soy J1: mis cartas abajo, las del oponente arriba (dorso)
+            posicionarCartasJugadorAbajo(jugador1.getMano());
+            posicionarCartasOponenteArriba(jugador2.getMano());
+        } else if (miNumeroJugador == 2) {
+            // Soy J2: mis cartas abajo, las del oponente arriba (dorso)
+            posicionarCartasJugadorAbajo(jugador2.getMano());
+            posicionarCartasOponenteArriba(jugador1.getMano());
+        }
 
         // Cuando ambos jugadores tienen 3 cartas, activar el InputProcessor
         if (jugador1.getMano().size() == 3 && jugador2.getMano().size() == 3) {
@@ -481,13 +514,7 @@ public class PantallaDosJugadores implements Screen, GameController {
         }
     }
 
-    // ========== MÉTODOS AUXILIARES ==========
 
-    /**
-     * Crea una carta visual a partir de un ID.
-     * @param id ID de la carta (0-39)
-     * @return CartaSolitario o null si el ID es inválido
-     */
     private CartaSolitario crearCartaPorId(int id) {
         System.out.println("🔍 Intentando crear carta con ID: " + id);
 
@@ -503,21 +530,30 @@ public class PantallaDosJugadores implements Screen, GameController {
         return null;
     }
 
-    /**
-     * Actualiza el InputProcessor con las cartas actuales.
-     */
+
     private void actualizarInputProcessor() {
         System.out.println("🎮 Actualizando InputProcessor");
+
+        // ✅ Determinar qué cartas son las mías
+        List<CartaSolitario> misCartas;
+        List<CartaSolitario> cartasOponente;
+
+        if (miNumeroJugador == 1) {
+            misCartas = jugador1.getMano();
+            cartasOponente = jugador2.getMano();
+        } else {
+            misCartas = jugador2.getMano();
+            cartasOponente = jugador1.getMano();
+        }
+
         Gdx.input.setInputProcessor(new EntradaDosJugadores(
-            jugador1.getMano(),
-            jugador2.getMano(),
+            misCartas,          // ✅ Solo puedo clickear MIS cartas
+            cartasOponente,     // Las del oponente (para referencia, pero no clickeables)
             this
         ));
     }
 
-    /**
-     * Vuelve al menú principal con transición de música.
-     */
+
     private void volverAlMenuConMusica() {
         if (Recursos.MUSICA_JUEGO != null) {
             Recursos.MUSICA_JUEGO.stop();
@@ -532,14 +568,8 @@ public class PantallaDosJugadores implements Screen, GameController {
         Render.app.setScreen(new PantallaMenu());
     }
 
-    // ========== MÉTODOS ADICIONALES PARA ACTUALIZAR DESDE EL SERVIDOR ==========
-    // TODO: Agregar estos métodos a la interfaz GameController
 
-    /**
-     * Actualiza los puntos de ambos jugadores.
-     * @param puntosJ1 Puntos del jugador 1
-     * @param puntosJ2 Puntos del jugador 2
-     */
+
     public void actualizarPuntos(int puntosJ1, int puntosJ2) {
         this.puntosJ1 = puntosJ1;
         this.puntosJ2 = puntosJ2;
@@ -552,20 +582,13 @@ public class PantallaDosJugadores implements Screen, GameController {
         }
     }
 
-    /**
-     * Actualiza el turno actual.
-     * @param turno Jugador que tiene el turno (1 o 2)
-     */
+
     public void actualizarTurno(int turno) {
         this.turnoActual = turno;
         System.out.println("🔄 Turno actualizado: J" + turno);
     }
 
-    /**
-     * Mueve una carta a la mesa.
-     * @param jugador Jugador que jugó (1 o 2)
-     * @param idCarta ID de la carta jugada
-     */
+
     public void moverCartaAMesa(int jugador, int idCarta) {
         List<CartaSolitario> mano = (jugador == 1) ? jugador1.getMano() : jugador2.getMano();
         List<CartaSolitario> jugadas = (jugador == 1) ? jugadasJ1 : jugadasJ2;

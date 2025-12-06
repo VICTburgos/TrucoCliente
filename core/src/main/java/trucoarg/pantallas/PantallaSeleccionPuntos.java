@@ -39,6 +39,7 @@ public class PantallaSeleccionPuntos implements Screen, GameController {
     private List<CartaPendiente> cartasPendientes = new ArrayList<>();
     private PantallaDosJugadores pantallaDosJugadores = null;
 
+
     // Clase auxiliar para guardar cartas en el buffer
     static class CartaPendiente {
         int jugador;
@@ -166,20 +167,25 @@ public class PantallaSeleccionPuntos implements Screen, GameController {
         btn30Puntos.setColor(amarillo, new Color(0.2f, 0.2f, 0.2f, 1f), borde);
     }
 
+
     private void iniciarJuego(int puntosParaGanar) {
         System.out.println("🎮 Iniciando juego a " + puntosParaGanar + " puntos");
 
         // Crear la pantalla del juego
         pantallaDosJugadores = new PantallaDosJugadores(puntosParaGanar, this);
 
+        // ✅ CRÍTICO: Establecer número de jugador PRIMERO
+        pantallaDosJugadores.setMiNumeroJugador(numPlayer);
+        System.out.println("✅ Número de jugador configurado: " + numPlayer);
+
         // Actualizar el gameController del clientThread
         clientThread.gameController = pantallaDosJugadores;
 
-        // ✅ PASAR las cartas pendientes a la nueva pantalla para que las aplique DESPUÉS de show()
+        // Pasar las cartas pendientes
         pantallaDosJugadores.setCartasPendientes(cartasPendientes);
         cartasPendientes.clear();
 
-        // Cambiar a la pantalla del juego (esto ejecuta show())
+        // Cambiar a la pantalla del juego
         dispose();
         Render.app.setScreen(pantallaDosJugadores);
     }

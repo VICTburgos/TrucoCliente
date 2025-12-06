@@ -10,6 +10,7 @@ import com.badlogic.gdx.math.Vector2;
 import trucoarg.ui.EntradasSolitario;
 import trucoarg.utiles.Configuracion;
 import trucoarg.utiles.PalosCartas;
+import trucoarg.utiles.Recursos;
 
 public class CartaSolitario extends Sprite {
     private final int NUMERO;
@@ -135,5 +136,8 @@ public class CartaSolitario extends Sprite {
     }
 
 
-
-}
+    // En CartaSolitario.java
+    public void mostrarDorso() {
+        setTexture(new Texture(Recursos.IMAGEN_DORSO));
+        }
+    }
