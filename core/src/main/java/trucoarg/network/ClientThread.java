@@ -42,21 +42,24 @@ public class ClientThread extends Thread {
         String message = (new String(packet.getData())).trim();
         String[] parts = message.split(":");
 
-        System.out.println("Mensaje recibido: " + message);
+        System.out.println("📨 Mensaje recibido: " + message);
 
         switch(parts[0]) {
             case "AlreadyConnected":
                 System.out.println("Ya estas conectado");
                 break;
+
             case "Connected":
                 System.out.println("Conectado al servidor");
                 this.ipServer = packet.getAddress();
                 gameController.connect(Integer.parseInt(parts[1]));
                 break;
+
             case "Full":
                 System.out.println("Servidor lleno");
                 this.end = true;
                 break;
+
             case "Start":
                 this.gameController.start();
                 break;
@@ -67,12 +70,50 @@ public class ClientThread extends Thread {
                 break;
 
             case "Repartir":
-                int jugador=Integer.parseInt(parts[1]);
-                int carta=Integer.parseInt(parts[2]);
+                int jugador = Integer.parseInt(parts[1]);
+                int carta = Integer.parseInt(parts[2]);
                 Gdx.app.postRunnable(() -> gameController.repartir(jugador, carta));
                 break;
-        }
 
+            case "CartaJugada":
+                int jugadorQueJugo = Integer.parseInt(parts[1]);
+                int idCartaJugada = Integer.parseInt(parts[2]);
+                System.out.println("📨 ClientThread recibió: CartaJugada:" + jugadorQueJugo + ":" + idCartaJugada);
+                Gdx.app.postRunnable(() -> gameController.cartaJugada(jugadorQueJugo, idCartaJugada));
+                break;
+
+            case "Turno":
+                int turnoJugador = Integer.parseInt(parts[1]);
+                Gdx.app.postRunnable(() -> gameController.actualizarTurno(turnoJugador));
+                break;
+
+            case "Puntos":
+                int puntosJ1 = Integer.parseInt(parts[1]);
+                int puntosJ2 = Integer.parseInt(parts[2]);
+                Gdx.app.postRunnable(() -> gameController.actualizarPuntos(puntosJ1, puntosJ2));
+                break;
+
+            case "Victoria":
+                int ganador = Integer.parseInt(parts[1]);
+                Gdx.app.postRunnable(() -> gameController.mostrarVictoria(ganador));
+                break;
+
+            // ✅✅✅ NUEVO: Limpiar mesa entre tiradas ✅✅✅
+            case "LimpiarMesa":
+                System.out.println("🗑️ Limpiando mesa para siguiente tirada");
+                Gdx.app.postRunnable(() -> gameController.limpiarMesa());
+                break;
+
+            // ✅✅✅ NUEVO: Nueva mano completa ✅✅✅
+            case "NuevaMano":
+                System.out.println("🔄 Nueva mano - Limpiando TODO");
+                Gdx.app.postRunnable(() -> gameController.nuevaMano());
+                break;
+
+            default:
+                System.out.println("⚠️ Mensaje desconocido: " + parts[0]);
+                break;
+        }
     }
 
     public void sendMessage(String message) {

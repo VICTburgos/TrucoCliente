@@ -293,4 +293,45 @@ public class PantallaSeleccionPuntos implements Screen, GameController {
             System.out.println("   ⏳ Guardado en buffer (total: " + cartasPendientes.size() + "/6)");
         }
     }
+
+    @Override
+    public void cartaJugada(int jugador, int idCarta) {
+        if (pantallaDosJugadores != null) {
+            pantallaDosJugadores.cartaJugada(jugador, idCarta);
+        }
+    }
+
+    @Override
+    public void actualizarTurno(int turno) {
+        if (pantallaDosJugadores != null) {
+            pantallaDosJugadores.actualizarTurno(turno);
+        }
+    }
+
+    @Override
+    public void actualizarPuntos(int puntosJ1, int puntosJ2) {
+        if (pantallaDosJugadores != null) {
+            pantallaDosJugadores.actualizarPuntos(puntosJ1, puntosJ2);
+        }
+    }
+
+    @Override
+    public void mostrarVictoria(int ganador) {
+
+    }
+
+    @Override
+    public void limpiarMesa() {
+        if (pantallaDosJugadores != null) {
+            pantallaDosJugadores.limpiarMesa();
+        }
+    }
+
+    @Override
+    public void nuevaMano() {
+        if (pantallaDosJugadores != null) {
+            pantallaDosJugadores.nuevaMano();
+        }
+    }
+
 }

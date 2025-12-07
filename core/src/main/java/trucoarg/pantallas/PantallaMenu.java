@@ -160,4 +160,34 @@ public class PantallaMenu implements Screen, GameController{
     public void repartir(int jugador, int carta) {
         // Implementación si es necesaria
     }
+
+    @Override
+    public void cartaJugada(int jugador, int idCarta) {
+
+    }
+
+    @Override
+    public void actualizarTurno(int turno) {
+
+    }
+
+    @Override
+    public void actualizarPuntos(int puntosJ1, int puntosJ2) {
+
+    }
+
+    @Override
+    public void mostrarVictoria(int ganador) {
+
+    }
+
+    @Override
+    public void limpiarMesa() {
+
+    }
+
+    @Override
+    public void nuevaMano() {
+
+    }
 }

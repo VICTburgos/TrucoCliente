@@ -9,22 +9,30 @@ import java.util.List;
 
 public class EntradaDosJugadores implements InputProcessor {
 
-    private final List<CartaSolitario> cartasJugador1;
-    private final List<CartaSolitario> cartasJugador2;
+    private final List<CartaSolitario> misCartas;          // ✅ MIS cartas (abajo)
+    private final List<CartaSolitario> cartasOponente;     // ✅ Cartas del oponente (arriba)
     private final PantallaDosJugadores pantalla;
 
-    // 🆕 Variable para detectar ESC
     private boolean escape = false;
 
-    public EntradaDosJugadores(List<CartaSolitario> cartasJugador1,
-                               List<CartaSolitario> cartasJugador2,
+    /**
+     * Constructor
+     * @param misCartas Las cartas del jugador ACTUAL (se muestran abajo)
+     * @param cartasOponente Las cartas del OPONENTE (se muestran arriba)
+     * @param pantalla Referencia a la pantalla del juego
+     */
+    public EntradaDosJugadores(List<CartaSolitario> misCartas,
+                               List<CartaSolitario> cartasOponente,
                                PantallaDosJugadores pantalla) {
-        this.cartasJugador1 = cartasJugador1;
-        this.cartasJugador2 = cartasJugador2;
+        this.misCartas = misCartas;
+        this.cartasOponente = cartasOponente;
         this.pantalla = pantalla;
+
+        System.out.println("🎮 EntradaDosJugadores creado:");
+        System.out.println("   Mis cartas: " + misCartas.size());
+        System.out.println("   Cartas oponente: " + cartasOponente.size());
     }
 
-    // 🆕 Método público para verificar si se presionó ESC
     public boolean escape() {
         boolean fuePresionado = escape;
         escape = false;
@@ -37,48 +45,60 @@ public class EntradaDosJugadores implements InputProcessor {
         float x = screenX;
         float y = Gdx.graphics.getHeight() - screenY;
 
-        System.out.println("Click detectado en: (" + x + ", " + y + ")");
+        System.out.println("\n🖱️ ===== CLICK DETECTADO =====");
+        System.out.println("   Posición: (" + x + ", " + y + ")");
 
         // Primero verificar clicks en botones
         Boton[] botones = pantalla.getBotones();
         if (botones != null) {
             for (Boton boton : botones) {
                 if (boton != null && boton.fueClickeado(x, y)) {
-                    System.out.println("Procesando click en botón: " + boton.getTexto());
+                    System.out.println("✅ Botón clickeado: " + boton.getTexto());
                     pantalla.procesarClickBoton(boton);
                     return true;
                 }
             }
         }
 
-        // Luego verificar clicks en cartas del Jugador 1
-        for (int i = 0; i < cartasJugador1.size(); i++) {
-            CartaSolitario carta = cartasJugador1.get(i);
+        // ✅ SOLO PERMITIR CLICKEAR MIS CARTAS (las de abajo)
+        for (int i = 0; i < misCartas.size(); i++) {
+            CartaSolitario carta = misCartas.get(i);
 
             if (carta.fueClickeada(x, y)) {
-                if (carta.getYaJugadas()) return true;
+                System.out.println("✅ MI carta clickeada:");
+                System.out.println("   Índice: " + i);
+                System.out.println("   ID: " + carta.getId());
+                System.out.println("   Ya jugada: " + carta.getYaJugadas());
 
-                pantalla.jugarCarta(carta, 1);
+                if (carta.getYaJugadas()) {
+                    System.out.println("   ❌ Carta ya fue jugada");
+                    return true;
+                }
+
+                // ✅ CRÍTICO: Obtener MI número de jugador
+                int miNumero = pantalla.getMiNumeroJugador();
+                System.out.println("   🎮 Mi número de jugador: " + miNumero);
+
+                // ✅ Llamar a jugarCarta con MI número
+                pantalla.jugarCarta(carta, miNumero);
                 return true;
             }
         }
 
-        // Finalmente verificar clicks en cartas del Jugador 2
-        for (int i = 0; i < cartasJugador2.size(); i++) {
-            CartaSolitario carta = cartasJugador2.get(i);
+        // ⚠️ Si clickean una carta del oponente, mostrar mensaje
+        for (int i = 0; i < cartasOponente.size(); i++) {
+            CartaSolitario carta = cartasOponente.get(i);
 
             if (carta.fueClickeada(x, y)) {
-                if (carta.getYaJugadas()) return true;
-
-                pantalla.jugarCarta(carta, 2);
+                System.out.println("❌ Click en carta del OPONENTE (bloqueado)");
                 return true;
             }
         }
 
+        System.out.println("   ℹ️ Click no procesado");
         return false;
     }
 
-    // 🆕 Detectar cuando se presiona ESC
     @Override
     public boolean keyDown(int keycode) {
         if (keycode == Input.Keys.ESCAPE) {
