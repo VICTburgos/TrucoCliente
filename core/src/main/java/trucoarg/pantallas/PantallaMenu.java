@@ -210,4 +210,9 @@ public class PantallaMenu implements Screen, GameController{
     public void actualizarBotones(String botonesVisibles) {
 
     }
+
+    @Override
+    public void volverAlMenu() {
+
+    }
 }

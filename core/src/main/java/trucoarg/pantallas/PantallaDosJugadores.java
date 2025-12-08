@@ -913,6 +913,12 @@ public class PantallaDosJugadores implements Screen, GameController {
     }
 
     @Override
+    public void volverAlMenu() {
+        Render.app.setScreen(new PantallaMenu());
+        dispose();
+    }
+
+    @Override
     public void respuestaCanto(int jugador, String respuesta, int resultado) {
         System.out.println("💬 Respuesta: J" + jugador + " - " + respuesta + " - resultado=" + resultado);
 
@@ -922,8 +928,6 @@ public class PantallaDosJugadores implements Screen, GameController {
             : "J" + jugador + " dice NO QUIERO";
         mostrarMensajeTemporal(mensaje);
 
-        // ❌ NO actualizar estado local
-        // El servidor enviará "ActualizarBotones" después
     }
 
     public int getMiNumeroJugador() {
@@ -952,6 +956,7 @@ public class PantallaDosJugadores implements Screen, GameController {
         if (fuenteVictoria != null) fuenteVictoria.dispose();
         if (fuenteCanto != null) fuenteCanto.dispose();
         clientThread.terminate();
+        System.out.println("se hizo el dipose");
     }
 
 }

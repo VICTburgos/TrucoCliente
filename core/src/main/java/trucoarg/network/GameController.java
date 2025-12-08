@@ -17,5 +17,6 @@ public interface GameController {
     void respuestaCanto(int jugador, String respuesta, int resultado);
     void jugadorAlMazo(int jugador);
     void actualizarBotones(String botonesVisibles);
+    void volverAlMenu();
 
 }

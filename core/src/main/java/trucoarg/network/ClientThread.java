@@ -142,6 +142,9 @@ public class ClientThread extends Thread {
                 System.out.println("🎮 Recibido estado de botones: " + botonesVisibles);
                 Gdx.app.postRunnable(() -> gameController.actualizarBotones(botonesVisibles));
                 break;
+            case "Disconnect":
+                Gdx.app.postRunnable(() -> gameController.volverAlMenu());
+                break;
 
             default:
                 System.out.println("⚠️ Mensaje desconocido: " + parts[0]);

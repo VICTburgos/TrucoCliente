@@ -191,7 +191,7 @@ public class PantallaSeleccionPuntos implements Screen, GameController {
         Render.app.setScreen(pantallaDosJugadores);
     }
 
-    private void volverAlMenu() {
+    public void volverAlMenu() {
         System.out.println("Volviendo al menú principal...");
         if (clientThread != null) {
             clientThread.terminate();
