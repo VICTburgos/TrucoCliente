@@ -190,4 +190,24 @@ public class PantallaMenu implements Screen, GameController{
     public void nuevaMano() {
 
     }
+
+    @Override
+    public void cantoRealizado(String tipoCanto, int jugador, String nombreCanto) {
+
+    }
+
+    @Override
+    public void respuestaCanto(int jugador, String respuesta, int resultado) {
+
+    }
+
+    @Override
+    public void jugadorAlMazo(int jugador) {
+
+    }
+
+    @Override
+    public void actualizarBotones(String botonesVisibles) {
+
+    }
 }

@@ -98,16 +98,49 @@ public class ClientThread extends Thread {
                 Gdx.app.postRunnable(() -> gameController.mostrarVictoria(ganador));
                 break;
 
-            // ✅✅✅ NUEVO: Limpiar mesa entre tiradas ✅✅✅
             case "LimpiarMesa":
                 System.out.println("🗑️ Limpiando mesa para siguiente tirada");
                 Gdx.app.postRunnable(() -> gameController.limpiarMesa());
                 break;
 
-            // ✅✅✅ NUEVO: Nueva mano completa ✅✅✅
             case "NuevaMano":
                 System.out.println("🔄 Nueva mano - Limpiando TODO");
                 Gdx.app.postRunnable(() -> gameController.nuevaMano());
+                break;
+
+            // 🆕 CANTO REALIZADO (servidor notifica que hubo un canto)
+            case "CantoRealizado":
+                String tipoCanto = parts[1]; // "truco" o "envido"
+                int jugadorQueCanto = Integer.parseInt(parts[2]);
+                String nombreCanto = parts[3];
+                System.out.println("🎺 Canto realizado: " + tipoCanto + " - J" + jugadorQueCanto + " - " + nombreCanto);
+                Gdx.app.postRunnable(() ->
+                    gameController.cantoRealizado(tipoCanto, jugadorQueCanto, nombreCanto));
+                break;
+
+            // 🆕 RESPUESTA A CANTO
+            case "RespuestaCanto":
+                int jugadorQueResponde = Integer.parseInt(parts[1]);
+                String respuesta = parts[2]; // "quiero" o "noquiero"
+                int resultado = Integer.parseInt(parts[3]);
+                System.out.println("💬 Respuesta a canto: J" + jugadorQueResponde + " - " + respuesta + " - resultado=" + resultado);
+                Gdx.app.postRunnable(() ->
+                    gameController.respuestaCanto(jugadorQueResponde, respuesta, resultado));
+                break;
+
+            // 🆕 JUGADOR SE FUE AL MAZO
+            case "JugadorAlMazo":
+                int jugadorAlMazo = Integer.parseInt(parts[1]);
+                System.out.println("🃏 J" + jugadorAlMazo + " se fue al mazo");
+                Gdx.app.postRunnable(() ->
+                    gameController.jugadorAlMazo(jugadorAlMazo));
+                break;
+            // En ClientThread.java - Agregar este case en processMessage()
+
+            case "ActualizarBotones":
+                String botonesVisibles = parts[1];
+                System.out.println("🎮 Recibido estado de botones: " + botonesVisibles);
+                Gdx.app.postRunnable(() -> gameController.actualizarBotones(botonesVisibles));
                 break;
 
             default:
@@ -125,6 +158,7 @@ public class ClientThread extends Thread {
             throw new RuntimeException(e);
         }
     }
+
 
     public void terminate() {
         this.end = true;

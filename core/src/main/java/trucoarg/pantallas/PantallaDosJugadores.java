@@ -42,6 +42,7 @@ public class PantallaDosJugadores implements Screen, GameController {
     private JugadorBase jugador2;
     private int miNumeroJugador = 0; // 1 o 2 (asignado por el servidor)
 
+
     // ========== ESTADO DEL JUEGO (actualizado por el servidor) ==========
     private int puntosJ1 = 0;
     private int puntosJ2 = 0;
@@ -71,6 +72,7 @@ public class PantallaDosJugadores implements Screen, GameController {
     private float tiempoMensajeTemporal = 0f;
     private static final float DURACION_MENSAJE_TEMPORAL = 4f;
 
+
     // ========== CONTROL DE VICTORIA ==========
     private float tiempoVictoria = 0f;
     private static final float TIEMPO_MOSTRAR_VICTORIA = 3f;
@@ -78,7 +80,8 @@ public class PantallaDosJugadores implements Screen, GameController {
     // ========== REFERENCIA AL CONTROLADOR DE RED ==========
     private GameController gameController;
     private ClientThread clientThread;
-
+    // 🆕 Agregar esta variable al inicio de la clase
+    private String tipoCantoPendiente = null; // "truco" o "envido"
     private List<CartaPendiente> cartasPendientesBuffer = null;
     private boolean cartasPendientesAplicadas = false;
 
@@ -110,9 +113,9 @@ public class PantallaDosJugadores implements Screen, GameController {
             this.clientThread = ((PantallaSeleccionPuntos) gameController).clientThread;
             System.out.println("✅ ClientThread obtenido correctamente");
         }
+        System.out.println("✅ JuegoTruco local inicializado");
     }
 
-    // ========== INICIALIZACIÓN ==========
     @Override
     public void show() {
         // Configurar gráficos
@@ -127,7 +130,7 @@ public class PantallaDosJugadores implements Screen, GameController {
         // Configurar posiciones en la mesa
         configurarPosicionesMesa();
 
-        // Crear botones de UI
+        // ✅ Crear botones ANTES de aplicar cartas
         crearBotones();
 
         // Crear fuentes
@@ -143,7 +146,7 @@ public class PantallaDosJugadores implements Screen, GameController {
         fuenteCanto.getData().setScale(5f);
         fuenteCanto.setColor(new Color(1f, 0.8f, 0.2f, 1f));
 
-        // ✅ Aplicar cartas pendientes AHORA que todo está inicializado
+        // ✅ Aplicar cartas pendientes
         if (cartasPendientesBuffer != null && !cartasPendientesAplicadas) {
             System.out.println("📦 Aplicando " + cartasPendientesBuffer.size() + " cartas pendientes en show()");
             for (CartaPendiente cp : cartasPendientesBuffer) {
@@ -154,9 +157,16 @@ public class PantallaDosJugadores implements Screen, GameController {
             cartasPendientesAplicadas = true;
             System.out.println("✅ Cartas aplicadas exitosamente");
         }
+
+        // ✅ CRÍTICO: Actualizar botones DESPUÉS de que todo esté inicializado
+        System.out.println("🎮 Llamando actualizarEstadoBotones() desde show()");
+        actualizarEstadoBotones();
+        if (clientThread != null) {
+            clientThread.sendMessage("SolicitarBotones:" + miNumeroJugador);
+            System.out.println("📤 Cliente solicita estado de botones");
+        }
     }
 
-    // ========== CREACIÓN DE BOTONES ==========
     private void crearBotones() {
         float btnAncho = 150;
         float btnAlto = 50;
@@ -171,7 +181,7 @@ public class PantallaDosJugadores implements Screen, GameController {
         Color rojo = new Color(0.8f, 0.2f, 0.2f, 0.9f);
         Color naranja = new Color(0.9f, 0.5f, 0.1f, 0.9f);
 
-        // Botones de TRUCO (lado izquierdo, arriba)
+        // Botones de TRUCO
         float trucoPosY = Configuracion.ALTO / 2f + 100;
         btnTruco = new Boton("TRUCO", margen, trucoPosY, btnAncho, btnAlto);
         btnRetruco = new Boton("RETRUCO", margen, trucoPosY - btnAlto - separacion, btnAncho, btnAlto);
@@ -181,7 +191,7 @@ public class PantallaDosJugadores implements Screen, GameController {
         btnRetruco.setColor(azulArg, blanco, borde);
         btnValeCuatro.setColor(azulArg, blanco, borde);
 
-        // Botones de ENVIDO (lado izquierdo, centro)
+        // Botones de ENVIDO
         float envidoPosY = Configuracion.ALTO / 2f - 50;
         btnEnvido = new Boton("ENVIDO", margen, envidoPosY, btnAncho, btnAlto);
         btnRealEnvido = new Boton("REAL ENVIDO", margen, envidoPosY - btnAlto - separacion, btnAncho, btnAlto);
@@ -191,7 +201,7 @@ public class PantallaDosJugadores implements Screen, GameController {
         btnRealEnvido.setColor(violeta, blanco, borde);
         btnFaltaEnvido.setColor(violeta, blanco, borde);
 
-        // Botones de RESPUESTA (lado derecho)
+        // Botones de RESPUESTA
         float respuestaPosY = Configuracion.ALTO / 2f + 50;
         btnQuiero = new Boton("QUIERO", Configuracion.ANCHO - btnAncho - margen, respuestaPosY, btnAncho, btnAlto);
         btnNoQuiero = new Boton("NO QUIERO", Configuracion.ANCHO - btnAncho - margen, respuestaPosY - btnAlto - separacion, btnAncho, btnAlto);
@@ -199,15 +209,15 @@ public class PantallaDosJugadores implements Screen, GameController {
         btnQuiero.setColor(verde, blanco, borde);
         btnNoQuiero.setColor(rojo, blanco, borde);
 
-        // Botón IR AL MAZO (lado izquierdo, abajo)
+        // Botón IR AL MAZO
         float mazoPosY = 100;
         btnIrAlMazo = new Boton("IR AL MAZO", margen, mazoPosY, btnAncho, btnAlto);
         btnIrAlMazo.setColor(naranja, blanco, borde);
 
-        // TODO: Por ahora ocultar todos los botones hasta que implementes la lógica del servidor
-        ocultarTodosLosBotones();
-    }
 
+
+        System.out.println("✅ Botones creados correctamente");
+    }
     private void ocultarTodosLosBotones() {
         btnTruco.setVisible(false);
         btnRetruco.setVisible(false);
@@ -218,6 +228,11 @@ public class PantallaDosJugadores implements Screen, GameController {
         btnQuiero.setVisible(false);
         btnNoQuiero.setVisible(false);
         btnIrAlMazo.setVisible(false);
+    }
+    private void actualizarEstadoBotones() {
+        // Solo ocultar todo por defecto
+        // El servidor dirá qué mostrar
+        ocultarTodosLosBotones();
     }
 
     // ========== CONFIGURACIÓN DE POSICIONES ==========
@@ -396,9 +411,10 @@ public class PantallaDosJugadores implements Screen, GameController {
     public void setMiNumeroJugador(int numero) {
         this.miNumeroJugador = numero;
         System.out.println("🎮 Mi número de jugador establecido: " + miNumeroJugador);
-    }
 
-    // ========== ACCIONES DEL JUGADOR ==========
+        // ❌ NO actualizar botones aquí
+        // El servidor lo hará cuando corresponda
+    }
 
     public void jugarCarta(CartaSolitario carta, int jugador) {
         if (juegoTerminado) return;
@@ -425,21 +441,79 @@ public class PantallaDosJugadores implements Screen, GameController {
         }
     }
 
+    private boolean verificarPuedoCantar() {
+        if (turnoActual != miNumeroJugador) {
+            mostrarMensajeTemporal("No es tu turno");
+            return false;
+        }
+        return true;
+    }
+
     public void procesarClickBoton(Boton boton) {
         if (juegoTerminado) return;
 
-        System.out.println("🔘 Click en botón: " + boton.getTexto());
+        System.out.println("🖱️ Click en botón: " + boton.getTexto());
 
-        // TODO: Enviar al servidor
-        // Ejemplo: gameController.enviarCanto(miNumeroJugador, boton.getTexto());
+        // ✅ SOLO enviar al servidor - SIN validaciones locales
 
-        // Por ahora, solo mostrar mensaje
-        mostrarMensajeTemporal("Botón presionado (TODO: enviar al servidor)");
+        if (boton == btnIrAlMazo) {
+            enviarMensajeAlServidor("IrAlMazo:" + miNumeroJugador);
+            return;
+        }
+
+        if (boton == btnQuiero) {
+            enviarMensajeAlServidor("ResponderCanto:" + miNumeroJugador + ":quiero");
+            return;
+        }
+
+        if (boton == btnNoQuiero) {
+            enviarMensajeAlServidor("ResponderCanto:" + miNumeroJugador + ":noquiero");
+            return;
+        }
+
+        if (boton == btnTruco) {
+            enviarMensajeAlServidor("CantarTruco:" + miNumeroJugador + ":truco");
+            return;
+        }
+
+        if (boton == btnRetruco) {
+            enviarMensajeAlServidor("CantarTruco:" + miNumeroJugador + ":retruco");
+            return;
+        }
+
+        if (boton == btnValeCuatro) {
+            enviarMensajeAlServidor("CantarTruco:" + miNumeroJugador + ":vale cuatro");
+            return;
+        }
+
+        if (boton == btnEnvido) {
+            enviarMensajeAlServidor("CantarEnvido:" + miNumeroJugador + ":envido");
+            return;
+        }
+
+        if (boton == btnRealEnvido) {
+            enviarMensajeAlServidor("CantarEnvido:" + miNumeroJugador + ":real envido");
+            return;
+        }
+
+        if (boton == btnFaltaEnvido) {
+            enviarMensajeAlServidor("CantarEnvido:" + miNumeroJugador + ":falta envido");
+            return;
+        }
     }
 
-    /**
-     * Devuelve el array de botones para el InputProcessor.
-     */
+    // Método auxiliar
+    private void enviarMensajeAlServidor(String mensaje) {
+        if (clientThread != null) {
+            clientThread.sendMessage(mensaje);
+            System.out.println("📤 Enviado: " + mensaje);
+        } else {
+            System.err.println("❌ ERROR: clientThread es null");
+        }
+    }
+
+
+
     public Boton[] getBotones() {
         return new Boton[]{
             btnTruco, btnRetruco, btnValeCuatro,
@@ -638,6 +712,9 @@ public class PantallaDosJugadores implements Screen, GameController {
         } else {
             mostrarMensajeTemporal("Turno del oponente");
         }
+
+        // ❌ NO llamar actualizarEstadoBotones() aquí
+        // El servidor enviará "ActualizarBotones" automáticamente
     }
 
 
@@ -756,7 +833,98 @@ public class PantallaDosJugadores implements Screen, GameController {
         System.out.println("==================================\n");
     }
 
+    @Override
+    public void cantoRealizado(String tipoCanto, int jugador, String nombreCanto) {
+        System.out.println("🎺 Canto realizado: " + tipoCanto + " - J" + jugador + " - " + nombreCanto);
 
+        // ✅ SOLO mostrar mensaje visual
+        mostrarMensajeTemporal("J" + jugador + " canta " + nombreCanto.toUpperCase());
+
+        // ❌ NO actualizar estado local
+        // El servidor enviará "ActualizarBotones" después
+    }
+
+    // 🆕 JUGADOR AL MAZO
+    @Override
+    public void jugadorAlMazo(int jugador) {
+        System.out.println("🃏 J" + jugador + " se fue al mazo");
+
+        // ✅ SOLO UI - NO lógica
+        mostrarMensajeTemporal("¡Jugador " + jugador + " se va al mazo!");
+
+        // ✅ El servidor enviará "Puntos" y "NuevaMano"
+        // NO hacer lógica aquí
+    }
+
+    @Override
+    public void actualizarBotones(String botonesVisibles) {
+        System.out.println("🎮 Actualizando botones desde servidor: " + botonesVisibles);
+
+        // Primero ocultar todos
+        ocultarTodosLosBotones();
+
+        // Si no hay botones que mostrar
+        if (botonesVisibles.isEmpty() || botonesVisibles.equals("ninguno")) {
+            return;
+        }
+
+        // Mostrar solo los que el servidor indica
+        String[] botones = botonesVisibles.split(",");
+        for (String boton : botones) {
+            switch (boton.trim()) {
+                case "truco":
+                    btnTruco.setVisible(true);
+                    btnTruco.setHabilitado(true);
+                    break;
+                case "retruco":
+                    btnRetruco.setVisible(true);
+                    btnRetruco.setHabilitado(true);
+                    break;
+                case "vale4":
+                    btnValeCuatro.setVisible(true);
+                    btnValeCuatro.setHabilitado(true);
+                    break;
+                case "envido":
+                    btnEnvido.setVisible(true);
+                    btnEnvido.setHabilitado(true);
+                    break;
+                case "real":
+                    btnRealEnvido.setVisible(true);
+                    btnRealEnvido.setHabilitado(true);
+                    break;
+                case "falta":
+                    btnFaltaEnvido.setVisible(true);
+                    btnFaltaEnvido.setHabilitado(true);
+                    break;
+                case "quiero":
+                    btnQuiero.setVisible(true);
+                    btnQuiero.setHabilitado(true);
+                    break;
+                case "noquiero":
+                    btnNoQuiero.setVisible(true);
+                    btnNoQuiero.setHabilitado(true);
+                    break;
+                case "mazo":
+                    btnIrAlMazo.setVisible(true);
+                    btnIrAlMazo.setHabilitado(true);
+                    break;
+            }
+        }
+    }
+
+    @Override
+    public void respuestaCanto(int jugador, String respuesta, int resultado) {
+        System.out.println("💬 Respuesta: J" + jugador + " - " + respuesta + " - resultado=" + resultado);
+
+        // ✅ SOLO mostrar mensaje visual
+        String mensaje = respuesta.equalsIgnoreCase("quiero")
+            ? "J" + jugador + " dice QUIERO"
+            : "J" + jugador + " dice NO QUIERO";
+        mostrarMensajeTemporal(mensaje);
+
+        // ❌ NO actualizar estado local
+        // El servidor enviará "ActualizarBotones" después
+    }
 
     public int getMiNumeroJugador() {
         return miNumeroJugador;
