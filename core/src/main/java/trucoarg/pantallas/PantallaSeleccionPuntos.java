@@ -258,6 +258,7 @@ public class PantallaSeleccionPuntos implements Screen, GameController {
         if (infoFuente != null) infoFuente.dispose();
         if (btn15Puntos != null) btn15Puntos.dispose();
         if (btn30Puntos != null) btn30Puntos.dispose();
+        clientThread.terminate();
     }
 
     // ========== IMPLEMENTACIÓN DE GameController ==========

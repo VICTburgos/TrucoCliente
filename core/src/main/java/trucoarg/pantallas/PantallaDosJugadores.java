@@ -951,6 +951,7 @@ public class PantallaDosJugadores implements Screen, GameController {
         fuente.dispose();
         if (fuenteVictoria != null) fuenteVictoria.dispose();
         if (fuenteCanto != null) fuenteCanto.dispose();
+        clientThread.terminate();
     }
 
 }
