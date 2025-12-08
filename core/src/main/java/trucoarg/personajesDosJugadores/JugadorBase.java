@@ -11,7 +11,6 @@ public class JugadorBase extends Sprite {
     private List<CartaSolitario> mano;
     private boolean esMano;
 
-    // Constructor para red (sin mazo)
     public JugadorBase(int id, boolean esMano) {
         this.id = id;
         this.esMano = esMano;

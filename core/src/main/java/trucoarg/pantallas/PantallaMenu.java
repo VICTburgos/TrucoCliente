@@ -143,22 +143,18 @@ public class PantallaMenu implements Screen, GameController{
 
     @Override
     public void connect(int numPlayer) {
-        // Implementación si es necesaria
     }
 
     @Override
     public void start() {
-        // Implementación si es necesaria
     }
 
     @Override
     public void iniciarPartida(int puntos) {
-        // Implementación si es necesaria
     }
 
     @Override
     public void repartir(int jugador, int carta) {
-        // Implementación si es necesaria
     }
 
     @Override

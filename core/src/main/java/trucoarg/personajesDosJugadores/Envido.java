@@ -3,10 +3,7 @@ package trucoarg.personajesDosJugadores;
 import trucoarg.personajesSolitario.CartaSolitario;
 import java.util.List;
 
-/**
- * Maneja los cantos de Envido: Envido, Real Envido y Falta Envido
- * CORREGIDO: Sistema de puntos acumulativos y subida de apuestas
- */
+
 public class Envido extends Canto {
 
     private static final int PUNTOS_ENVIDO = 2;

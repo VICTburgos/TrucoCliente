@@ -32,15 +32,12 @@ public class PantallaSeleccionPuntos implements Screen, GameController {
 
     private final Object gameInstance;
 
-    // ✅ Variables para almacenar estado
     private int numPlayer = -1;
 
-    // ✅ Buffer para cartas que llegan ANTES de crear la pantalla
     private List<CartaPendiente> cartasPendientes = new ArrayList<>();
     private PantallaDosJugadores pantallaDosJugadores = null;
 
 
-    // Clase auxiliar para guardar cartas en el buffer
     static class CartaPendiente {
         int jugador;
         int idCarta;
@@ -170,23 +167,18 @@ public class PantallaSeleccionPuntos implements Screen, GameController {
 
 
     private void iniciarJuego(int puntosParaGanar) {
-        System.out.println("🎮 Iniciando juego a " + puntosParaGanar + " puntos");
+        System.out.println(" Iniciando juego a " + puntosParaGanar + " puntos");
 
-        // Crear la pantalla del juego
         pantallaDosJugadores = new PantallaDosJugadores(puntosParaGanar, this);
 
-        // ✅ CRÍTICO: Establecer número de jugador PRIMERO
         pantallaDosJugadores.setMiNumeroJugador(numPlayer);
-        System.out.println("✅ Número de jugador configurado: " + numPlayer);
+        System.out.println(" Número de jugador configurado: " + numPlayer);
 
-        // Actualizar el gameController del clientThread
         clientThread.gameController = pantallaDosJugadores;
 
-        // Pasar las cartas pendientes
         pantallaDosJugadores.setCartasPendientes(cartasPendientes);
         cartasPendientes.clear();
 
-        // Cambiar a la pantalla del juego
         dispose();
         Render.app.setScreen(pantallaDosJugadores);
     }
@@ -221,7 +213,6 @@ public class PantallaSeleccionPuntos implements Screen, GameController {
         String mensajeEsc = "ESC para volver al menú principal...";
         infoFuente.draw(batch, mensajeEsc, 50, 650);
 
-        // ✅ Mostrar estado de conexión y cartas recibidas
         if (numPlayer >= 0) {
             String mensajeJugador = "Jugador " + numPlayer + " conectado";
             infoFuente.draw(batch, mensajeJugador, 50, 600);
@@ -260,36 +251,33 @@ public class PantallaSeleccionPuntos implements Screen, GameController {
         if (btn30Puntos != null) btn30Puntos.dispose();
     }
 
-    // ========== IMPLEMENTACIÓN DE GameController ==========
 
     @Override
     public void connect(int numPlayer) {
         this.numPlayer = numPlayer;
-        System.out.println("✅ Cliente conectado como jugador: " + numPlayer);
+        System.out.println(" Cliente conectado como jugador: " + numPlayer);
     }
 
     @Override
     public void start() {
-        System.out.println("🎮 Partida iniciada desde servidor");
+        System.out.println(" Partida iniciada desde servidor");
     }
 
     @Override
     public void iniciarPartida(int puntos) {
-        System.out.println("🎯 Iniciar_Partida recibido: " + puntos + " puntos");
-        System.out.println("📦 Cartas en buffer: " + cartasPendientes.size());
+        System.out.println(" Iniciar_Partida recibido: " + puntos + " puntos");
+        System.out.println(" Cartas en buffer: " + cartasPendientes.size());
         iniciarJuego(puntos);
     }
 
     @Override
     public void repartir(int jugador, int carta) {
-        System.out.println("📨 Repartir recibido: J" + jugador + " Carta ID:" + carta);
+        System.out.println(" Repartir recibido: J" + jugador + " Carta ID:" + carta);
 
-        // Si la pantalla del juego ya existe, repartir directamente
         if (pantallaDosJugadores != null) {
             System.out.println("   → Enviando directamente a PantallaDosJugadores");
             pantallaDosJugadores.repartir(jugador, carta);
         } else {
-            // Si no, guardar en buffer
             cartasPendientes.add(new CartaPendiente(jugador, carta));
             System.out.println("   ⏳ Guardado en buffer (total: " + cartasPendientes.size() + "/6)");
         }

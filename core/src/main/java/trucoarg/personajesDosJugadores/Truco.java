@@ -16,24 +16,21 @@ public class Truco extends Canto {
             ", esperandoRespuesta=" + esperandoRespuesta +
             ", cantoAceptado=" + cantoAceptado);
 
-        // No se puede cantar si hay un canto pendiente de respuesta
         if (esperandoRespuesta) {
             System.out.println("  RECHAZADO: Hay canto pendiente");
             return false;
         }
 
-        // Validar que el canto sea válido según el estado actual
         if (!validarCanto(cantoLower, jugador)) {
             return false;
         }
 
-        // Registrar el canto
         cantoActual = cantoLower;
         jugadorQueCanto = jugador;
         esperandoRespuesta = true;
-        cantoAceptado = false; // Se resetea porque es un NUEVO canto
+        cantoAceptado = false;
 
-        System.out.println("  ÉXITO: Canto registrado. Esperando respuesta del J" + getJugadorQueDebeResponder());
+        System.out.println("  Canto registrado. Esperando respuesta del J" + getJugadorQueDebeResponder());
         return true;
     }
 
@@ -41,7 +38,6 @@ public class Truco extends Canto {
     protected boolean validarCanto(String tipoCanto, int jugador) {
         switch (tipoCanto) {
             case "truco":
-                // Truco solo si no hay ningún canto previo o si está sin resolver
                 if (cantoActual != null) {
                     System.out.println("  RECHAZADO: Ya hay canto activo (" + cantoActual + ")");
                     return false;
@@ -49,7 +45,6 @@ public class Truco extends Canto {
                 return true;
 
             case "retruco":
-                // Retruco solo si hay truco aceptado y lo canta el otro jugador
                 if (cantoActual == null || !cantoActual.equals("truco") || !cantoAceptado) {
                     System.out.println("  RECHAZADO: No hay truco aceptado para retruco");
                     return false;
@@ -62,7 +57,6 @@ public class Truco extends Canto {
 
             case "vale cuatro":
             case "vale 4":
-                // Vale cuatro solo si hay retruco aceptado y lo canta el otro jugador
                 if (cantoActual == null || !cantoActual.equals("retruco") || !cantoAceptado) {
                     System.out.println("  RECHAZADO: No hay retruco aceptado para vale cuatro");
                     return false;
@@ -98,10 +92,7 @@ public class Truco extends Canto {
         }
     }
 
-    /**
-     * Obtiene los puntos que vale la mano actual
-     * (método de compatibilidad con código existente)
-     */
+
     public int puntosDeLaMano() {
         return getPuntos();
     }
