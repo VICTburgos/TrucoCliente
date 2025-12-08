@@ -1,6 +1,6 @@
 # TrucoARG
 
-## Integrantes del Grupo:
+## Integrante del Grupo:
 BURGOS Victoria
 
 ## Descripción Corta del Juego:
