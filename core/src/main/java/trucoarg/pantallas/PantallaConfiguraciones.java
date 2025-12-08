@@ -25,7 +25,6 @@ public class PantallaConfiguraciones implements Screen {
     private Boton btnVolumenMenos;
     private Boton btnVolumenMas;
 
-    // Botón volver
     private Boton btnVolver;
 
     private float volumenActual = 0.5f; // Volumen inicial (50%)
@@ -39,7 +38,6 @@ public class PantallaConfiguraciones implements Screen {
         cargarFuentes();
         crearBotones();
 
-        // Establecer volumen inicial
         if (Recursos.MUSICA_GENERAL != null) {
             Recursos.MUSICA_GENERAL.setVolume(volumenActual);
         }
@@ -128,7 +126,6 @@ public class PantallaConfiguraciones implements Screen {
         float centroX = Configuracion.ANCHO / 2f;
         float centroY = Configuracion.ALTO / 2f;
 
-        // Botones de volumen (más grandes y centrados)
         float btnVolumenAncho = 100;
         float btnVolumenAlto = 80;
         float separacion = 100;
@@ -147,7 +144,6 @@ public class PantallaConfiguraciones implements Screen {
             btnVolumenAlto);
         btnVolumenMas.setColor(verde, blanco, borde);
 
-        // Botón volver
         btnVolver = new Boton("VOLVER AL MENÚ",
             centroX - 150, 100, 300, 70);
         btnVolver.setColor(verde, blanco, borde);
@@ -190,26 +186,22 @@ public class PantallaConfiguraciones implements Screen {
 
         fondo.dibujar();
 
-        // Título
         String titulo = "CONFIGURACIONES";
         float tituloX = Configuracion.ANCHO / 2f - 280;
         float tituloY = Configuracion.ALTO - 100;
         tituloFuente.draw(batch, titulo, tituloX, tituloY);
 
-        // Texto de volumen (más grande y centrado)
         String textoVolumen = "VOLUMEN: " + (int)(volumenActual * 100) + "%";
         float volumenX = Configuracion.ANCHO / 2f - 150;
         float volumenY = Configuracion.ALTO / 2f + 100;
         textoFuente.draw(batch, textoVolumen, volumenX, volumenY);
 
-        // Barra visual de volumen
         dibujarBarraVolumen();
 
         btnVolumenMenos.dibujar(batch);
         btnVolumenMas.dibujar(batch);
         btnVolver.dibujar(batch);
 
-        // Mensaje ESC
         String mensajeEsc = "ESC para volver al menú";
         infoFuente.draw(batch, mensajeEsc, 50, 650);
 

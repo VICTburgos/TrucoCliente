@@ -28,8 +28,6 @@ import java.util.List;
  * El CLIENTE solo dibuja y envía inputs del usuario.
  */
 public class PantallaDosJugadores implements Screen, GameController {
-
-    // ========== GRÁFICOS ==========
     private Imagen fondo;
     private SpriteBatch batch;
 
@@ -113,7 +111,7 @@ public class PantallaDosJugadores implements Screen, GameController {
             this.clientThread = ((PantallaSeleccionPuntos) gameController).clientThread;
             System.out.println("✅ ClientThread obtenido correctamente");
         }
-        System.out.println("✅ JuegoTruco local inicializado");
+        System.out.println(" JuegoTruco local inicializado");
     }
 
     @Override
@@ -130,7 +128,7 @@ public class PantallaDosJugadores implements Screen, GameController {
         // Configurar posiciones en la mesa
         configurarPosicionesMesa();
 
-        // ✅ Crear botones ANTES de aplicar cartas
+        //  Crear botones ANTES de aplicar cartas
         crearBotones();
 
         // Crear fuentes
@@ -146,9 +144,9 @@ public class PantallaDosJugadores implements Screen, GameController {
         fuenteCanto.getData().setScale(5f);
         fuenteCanto.setColor(new Color(1f, 0.8f, 0.2f, 1f));
 
-        // ✅ Aplicar cartas pendientes
+        //  Aplicar cartas pendientes
         if (cartasPendientesBuffer != null && !cartasPendientesAplicadas) {
-            System.out.println("📦 Aplicando " + cartasPendientesBuffer.size() + " cartas pendientes en show()");
+            System.out.println(" Aplicando " + cartasPendientesBuffer.size() + " cartas pendientes en show()");
             for (CartaPendiente cp : cartasPendientesBuffer) {
                 System.out.println("   → Aplicando carta J" + cp.jugador + " ID:" + cp.idCarta);
                 repartir(cp.jugador, cp.idCarta);
@@ -158,12 +156,12 @@ public class PantallaDosJugadores implements Screen, GameController {
             System.out.println("✅ Cartas aplicadas exitosamente");
         }
 
-        // ✅ CRÍTICO: Actualizar botones DESPUÉS de que todo esté inicializado
+
         System.out.println("🎮 Llamando actualizarEstadoBotones() desde show()");
         actualizarEstadoBotones();
         if (clientThread != null) {
             clientThread.sendMessage("SolicitarBotones:" + miNumeroJugador);
-            System.out.println("📤 Cliente solicita estado de botones");
+            System.out.println(" Cliente solicita estado de botones");
         }
     }
 
@@ -341,7 +339,6 @@ public class PantallaDosJugadores implements Screen, GameController {
             }
         }
 
-        // ✅✅✅ CRÍTICO: DIBUJAR CARTAS JUGADAS EN LA MESA ✅✅✅
         for (CartaSolitario c : jugadasJ1) {
             c.dibujar(batch);
         }
@@ -410,34 +407,32 @@ public class PantallaDosJugadores implements Screen, GameController {
 
     public void setMiNumeroJugador(int numero) {
         this.miNumeroJugador = numero;
-        System.out.println("🎮 Mi número de jugador establecido: " + miNumeroJugador);
+        System.out.println("Mi número de jugador establecido: " + miNumeroJugador);
 
-        // ❌ NO actualizar botones aquí
-        // El servidor lo hará cuando corresponda
+
     }
 
     public void jugarCarta(CartaSolitario carta, int jugador) {
         if (juegoTerminado) return;
 
         if (jugador != miNumeroJugador) {
-            System.out.println("❌ No puedes jugar cartas del oponente");
+            System.out.println(" No puedes jugar cartas del oponente");
             return;
         }
 
         if (turnoActual != miNumeroJugador) {
-            System.out.println("❌ No es tu turno");
+            System.out.println("No es tu turno");
             mostrarMensajeTemporal("¡No es tu turno!");
             return;
         }
 
         System.out.println("🎴 Enviando al servidor: JugarCarta:" + jugador + ":" + carta.getId());
 
-        // ✅ Enviar al servidor usando clientThread
         if (clientThread != null) {
             clientThread.sendMessage("JugarCarta:" + jugador + ":" + carta.getId());
-            System.out.println("📤 Mensaje enviado al servidor");
+            System.out.println(" Mensaje enviado al servidor");
         } else {
-            System.err.println("❌ ERROR: clientThread es null");
+            System.err.println(" ERROR: clientThread es null");
         }
     }
 
@@ -454,7 +449,6 @@ public class PantallaDosJugadores implements Screen, GameController {
 
         System.out.println("🖱️ Click en botón: " + boton.getTexto());
 
-        // ✅ SOLO enviar al servidor - SIN validaciones locales
 
         if (boton == btnIrAlMazo) {
             enviarMensajeAlServidor("IrAlMazo:" + miNumeroJugador);
@@ -502,13 +496,12 @@ public class PantallaDosJugadores implements Screen, GameController {
         }
     }
 
-    // Método auxiliar
     private void enviarMensajeAlServidor(String mensaje) {
         if (clientThread != null) {
             clientThread.sendMessage(mensaje);
-            System.out.println("📤 Enviado: " + mensaje);
+            System.out.println(" Enviado: " + mensaje);
         } else {
-            System.err.println("❌ ERROR: clientThread es null");
+            System.err.println(" ERROR: clientThread es null");
         }
     }
 
@@ -524,31 +517,22 @@ public class PantallaDosJugadores implements Screen, GameController {
 
     // ========== IMPLEMENTACIÓN DE GameController (mensajes del servidor) ==========
 
-    /**
-     * Llamado cuando el servidor confirma la conexión.
-     * @param numPlayer Número de jugador asignado (1 o 2)
-     */
+
     @Override
     public void connect(int numPlayer) {
-        System.out.println("✅ Conectado como jugador " + numPlayer);
+        System.out.println(" Conectado como jugador " + numPlayer);
         this.miNumeroJugador = numPlayer;
     }
 
-    /**
-     * Llamado cuando el servidor indica que la partida comienza.
-     */
     @Override
     public void start() {
-        System.out.println("🎮 Partida iniciada");
+        System.out.println(" Partida iniciada");
     }
 
-    /**
-     * Llamado cuando el servidor envía los puntos para ganar.
-     * @param puntos Puntos necesarios para ganar
-     */
+
     @Override
     public void iniciarPartida(int puntos) {
-        System.out.println("🎯 Iniciando partida a " + puntos + " puntos");
+        System.out.println(" Iniciando partida a " + puntos + " puntos");
         this.puntosParaGanar = puntos;
     }
     private void posicionarCartasOponenteArriba(List<CartaSolitario> mano) {
@@ -556,7 +540,7 @@ public class PantallaDosJugadores implements Screen, GameController {
         float y = Configuracion.ALTO - 220;
         float dx = 250;
 
-        System.out.println("🎯 Posicionando " + mano.size() + " cartas OPONENTE (dorso)");
+        System.out.println(" Posicionando " + mano.size() + " cartas OPONENTE (dorso)");
 
         for (int i = 0; i < mano.size(); i++) {
             CartaSolitario c = mano.get(i);
@@ -564,7 +548,7 @@ public class PantallaDosJugadores implements Screen, GameController {
             c.setPosicion(new Vector2(x + i * dx, y));
             c.setYaJugadas(false);
 
-            // ✅ Cambiar la textura al dorso
+            //  Cambiar la textura al dorso
             c.mostrarDorso();
 
             System.out.println("   Carta " + i + " OPONENTE: pos=(" + (x + i * dx) + "," + y + ") [DORSO]");
@@ -573,24 +557,24 @@ public class PantallaDosJugadores implements Screen, GameController {
 
     @Override
     public void repartir(int jugador, int idCarta) {
-        System.out.println("📨 Recibiendo carta ID:" + idCarta + " para jugador " + jugador);
+        System.out.println("Recibiendo carta ID:" + idCarta + " para jugador " + jugador);
 
         // Crear la carta visual basándose en el ID recibido
         CartaSolitario carta = crearCartaPorId(idCarta);
         if (carta == null) {
-            System.err.println("❌ Error al crear carta con ID: " + idCarta);
+            System.err.println(" Error al crear carta con ID: " + idCarta);
             return;
         }
 
         // Agregar la carta a la mano del jugador correspondiente
         if (jugador == 1) {
             jugador1.getMano().add(carta);
-            System.out.println("✅ Carta agregada a J1. Total: " + jugador1.getMano().size());
+            System.out.println(" Carta agregada a J1. Total: " + jugador1.getMano().size());
         } else if (jugador == 2) {
             jugador2.getMano().add(carta);
-            System.out.println("✅ Carta agregada a J2. Total: " + jugador2.getMano().size());
+            System.out.println(" Carta agregada a J2. Total: " + jugador2.getMano().size());
         } else {
-            System.err.println("❌ Número de jugador inválido: " + jugador);
+            System.err.println(" Número de jugador inválido: " + jugador);
             return;
         }
 
@@ -607,50 +591,46 @@ public class PantallaDosJugadores implements Screen, GameController {
 
         // Cuando ambos jugadores tienen 3 cartas, activar el InputProcessor
         if (jugador1.getMano().size() == 3 && jugador2.getMano().size() == 3) {
-            System.out.println("✅ Todas las cartas recibidas - Activando InputProcessor");
+            System.out.println(" Todas las cartas recibidas - Activando InputProcessor");
             actualizarInputProcessor();
         }
     }
 
     @Override
     public void cartaJugada(int jugador, int idCarta) {
-        System.out.println("\n📨 ========== CLIENTE RECIBE CARTA JUGADA ==========");
+        System.out.println("\n========== CLIENTE RECIBE CARTA JUGADA ==========");
         System.out.println("   Jugador: J" + jugador);
         System.out.println("   Carta ID: " + idCarta);
         System.out.println("   Mi número: J" + miNumeroJugador);
 
-        // ✅ Mover la carta a la mesa
         moverCartaAMesa(jugador, idCarta);
 
-        // ✅ Mostrar mensaje temporal
         String mensaje = (jugador == miNumeroJugador) ? "Jugaste una carta" : "El oponente jugó";
         mostrarMensajeTemporal(mensaje);
 
-        System.out.println("✅ Carta movida a la mesa");
+        System.out.println(" Carta movida a la mesa");
         System.out.println("===================================================\n");
     }
 
 
     private CartaSolitario crearCartaPorId(int id) {
-        System.out.println("🔍 Intentando crear carta con ID: " + id);
+        System.out.println(" Intentando crear carta con ID: " + id);
 
-        // Buscar en el enum CartasFinales
         for (CartasFinales carta : CartasFinales.values()) {
             if (carta.getId() == id) {
-                System.out.println("✅ Carta encontrada: " + carta.name());
+                System.out.println(" Carta encontrada: " + carta.name());
                 return carta.crearCarta();
             }
         }
 
-        System.err.println("❌ No se encontró carta con ID: " + id);
+        System.err.println(" No se encontró carta con ID: " + id);
         return null;
     }
 
 
     private void actualizarInputProcessor() {
-        System.out.println("🎮 Actualizando InputProcessor");
+        System.out.println(" Actualizando InputProcessor");
 
-        // ✅ Determinar qué cartas son las mías
         List<CartaSolitario> misCartas;
         List<CartaSolitario> cartasOponente;
 
@@ -663,8 +643,8 @@ public class PantallaDosJugadores implements Screen, GameController {
         }
 
         Gdx.input.setInputProcessor(new EntradaDosJugadores(
-            misCartas,          // ✅ Solo puedo clickear MIS cartas
-            cartasOponente,     // Las del oponente (para referencia, pero no clickeables)
+            misCartas,
+            cartasOponente,
             this
         ));
     }
@@ -690,14 +670,14 @@ public class PantallaDosJugadores implements Screen, GameController {
     public void actualizarPuntos(int puntosJ1, int puntosJ2) {
         this.puntosJ1 = puntosJ1;
         this.puntosJ2 = puntosJ2;
-        System.out.println("📊 Puntos actualizados: J1=" + puntosJ1 + ", J2=" + puntosJ2);
+        System.out.println(" Puntos actualizados: J1=" + puntosJ1 + ", J2=" + puntosJ2);
     }
 
     @Override
     public void mostrarVictoria(int ganador) {
         juegoTerminado = true;
         tiempoVictoria = 0f;
-        System.out.println("🏆 ¡Jugador " + ganador + " ganó el juego!");
+        System.out.println(" ¡Jugador " + ganador + " ganó el juego!");
         mostrarMensajeTemporal("¡GANÓ JUGADOR " + ganador + "!");
     }
 
@@ -705,7 +685,7 @@ public class PantallaDosJugadores implements Screen, GameController {
     @Override
     public void actualizarTurno(int turno) {
         this.turnoActual = turno;
-        System.out.println("🔄 Turno actualizado: J" + turno);
+        System.out.println("Turno actualizado: J" + turno);
 
         if (turno == miNumeroJugador) {
             mostrarMensajeTemporal("¡Tu turno!");
@@ -713,13 +693,12 @@ public class PantallaDosJugadores implements Screen, GameController {
             mostrarMensajeTemporal("Turno del oponente");
         }
 
-        // ❌ NO llamar actualizarEstadoBotones() aquí
-        // El servidor enviará "ActualizarBotones" automáticamente
+
     }
 
 
     public void moverCartaAMesa(int jugador, int idCarta) {
-        System.out.println("\n🎴 ========== MOVIENDO CARTA A LA MESA ==========");
+        System.out.println("\n========== MOVIENDO CARTA A LA MESA ==========");
         System.out.println("   Jugador: J" + jugador);
         System.out.println("   Carta ID: " + idCarta);
 
@@ -730,7 +709,6 @@ public class PantallaDosJugadores implements Screen, GameController {
         System.out.println("   Cartas en mano ANTES: " + mano.size());
         System.out.println("   Cartas en mesa ANTES: " + jugadas.size());
 
-        // Buscar la carta en la mano
         CartaSolitario cartaJugada = null;
         for (CartaSolitario c : mano) {
             if (c.getId() == idCarta) {
@@ -740,45 +718,39 @@ public class PantallaDosJugadores implements Screen, GameController {
         }
 
         if (cartaJugada != null) {
-            System.out.println("✅ Carta encontrada en la mano");
+            System.out.println(" Carta encontrada en la mano");
 
-            // ✅ Si era una carta del oponente (dorso), mostrar la cara
             if (cartaJugada.estaMostrandoDorso()) {
-                System.out.println("   🔄 Cambiando de DORSO a CARA");
+                System.out.println("Cambiando de DORSO a CARA");
                 cartaJugada.mostrarCara();
             }
 
-            // ✅ Mover a la posición de la mesa
             int indice = jugadas.size();
             Vector2 posicionMesa = posiciones[indice];
             cartaJugada.setPosicion(posicionMesa);
             cartaJugada.setYaJugadas(true);
 
-            System.out.println("   📍 Carta movida a posición: (" + posicionMesa.x + ", " + posicionMesa.y + ")");
+            System.out.println("  Carta movida a posición: (" + posicionMesa.x + ", " + posicionMesa.y + ")");
 
-            // ✅ Agregar a la lista de jugadas
             jugadas.add(cartaJugada);
 
-            // ✅ Remover de la mano
             mano.remove(cartaJugada);
 
             System.out.println("   Cartas en mano DESPUÉS: " + mano.size());
             System.out.println("   Cartas en mesa DESPUÉS: " + jugadas.size());
 
-            // ✅ Reposicionar las cartas restantes en la mano
             if (jugador == miNumeroJugador) {
-                System.out.println("   🔄 Reposicionando MIS cartas");
+                System.out.println("    Reposicionando MIS cartas");
                 posicionarCartasJugadorAbajo(mano);
             } else {
-                System.out.println("   🔄 Reposicionando cartas del OPONENTE");
+                System.out.println("    Reposicionando cartas del OPONENTE");
                 posicionarCartasOponenteArriba(mano);
             }
 
-            System.out.println("✅ CARTA MOVIDA EXITOSAMENTE");
+            System.out.println(" CARTA MOVIDA EXITOSAMENTE");
         } else {
-            System.err.println("❌ ERROR: No se encontró carta con ID:" + idCarta + " en la mano de J" + jugador);
+            System.err.println(" ERROR: No se encontró carta con ID:" + idCarta + " en la mano de J" + jugador);
 
-            // 🐛 DEBUG: Mostrar IDs de todas las cartas en la mano
             System.out.println("   📋 Cartas en la mano de J" + jugador + ":");
             for (CartaSolitario c : mano) {
                 System.out.println("      - ID: " + c.getId() + " (dorso: " + c.estaMostrandoDorso() + ")");
@@ -792,34 +764,30 @@ public class PantallaDosJugadores implements Screen, GameController {
 
 
     public void limpiarMesa() {
-        System.out.println("\n🗑️ ========== LIMPIANDO MESA ==========");
+        System.out.println("\n🗑 ========== LIMPIANDO MESA ==========");
         System.out.println("   Cartas en mesa J1 ANTES: " + jugadasJ1.size());
         System.out.println("   Cartas en mesa J2 ANTES: " + jugadasJ2.size());
 
-        // ✅ Limpiar SOLO las cartas jugadas en la mesa
         jugadasJ1.clear();
         jugadasJ2.clear();
 
-        // ❌ NO limpiar las manos aquí, solo la mesa
-        // jugador1.getMano().clear(); <-- NO HACER ESTO
-        // jugador2.getMano().clear(); <-- NO HACER ESTO
+
 
         System.out.println("   Cartas en mesa J1 DESPUÉS: " + jugadasJ1.size());
         System.out.println("   Cartas en mesa J2 DESPUÉS: " + jugadasJ2.size());
         System.out.println("   Cartas en mano J1: " + jugador1.getMano().size());
         System.out.println("   Cartas en mano J2: " + jugador2.getMano().size());
-        System.out.println("✅ Mesa limpiada exitosamente");
+        System.out.println(" Mesa limpiada exitosamente");
         System.out.println("======================================\n");
     }
 
     public void nuevaMano() {
-        System.out.println("\n🔄 ========== NUEVA MANO ==========");
+        System.out.println("\n ========== NUEVA MANO ==========");
         System.out.println("   Cartas en mesa J1 ANTES: " + jugadasJ1.size());
         System.out.println("   Cartas en mesa J2 ANTES: " + jugadasJ2.size());
         System.out.println("   Cartas en mano J1 ANTES: " + jugador1.getMano().size());
         System.out.println("   Cartas en mano J2 ANTES: " + jugador2.getMano().size());
 
-        // ✅ Limpiar TODO: mesa + manos
         jugadasJ1.clear();
         jugadasJ2.clear();
         jugador1.getMano().clear();
@@ -829,46 +797,37 @@ public class PantallaDosJugadores implements Screen, GameController {
         System.out.println("   Cartas en mesa J2 DESPUÉS: " + jugadasJ2.size());
         System.out.println("   Cartas en mano J1 DESPUÉS: " + jugador1.getMano().size());
         System.out.println("   Cartas en mano J2 DESPUÉS: " + jugador2.getMano().size());
-        System.out.println("✅ TODO limpiado - Esperando nuevas cartas");
+        System.out.println(" TODO limpiado - Esperando nuevas cartas");
         System.out.println("==================================\n");
     }
 
     @Override
     public void cantoRealizado(String tipoCanto, int jugador, String nombreCanto) {
-        System.out.println("🎺 Canto realizado: " + tipoCanto + " - J" + jugador + " - " + nombreCanto);
+        System.out.println(" Canto realizado: " + tipoCanto + " - J" + jugador + " - " + nombreCanto);
 
-        // ✅ SOLO mostrar mensaje visual
         mostrarMensajeTemporal("J" + jugador + " canta " + nombreCanto.toUpperCase());
 
-        // ❌ NO actualizar estado local
-        // El servidor enviará "ActualizarBotones" después
+
     }
 
-    // 🆕 JUGADOR AL MAZO
     @Override
     public void jugadorAlMazo(int jugador) {
-        System.out.println("🃏 J" + jugador + " se fue al mazo");
+        System.out.println(" J" + jugador + " se fue al mazo");
 
-        // ✅ SOLO UI - NO lógica
         mostrarMensajeTemporal("¡Jugador " + jugador + " se va al mazo!");
 
-        // ✅ El servidor enviará "Puntos" y "NuevaMano"
-        // NO hacer lógica aquí
     }
 
     @Override
     public void actualizarBotones(String botonesVisibles) {
-        System.out.println("🎮 Actualizando botones desde servidor: " + botonesVisibles);
+        System.out.println(" Actualizando botones desde servidor: " + botonesVisibles);
 
-        // Primero ocultar todos
         ocultarTodosLosBotones();
 
-        // Si no hay botones que mostrar
         if (botonesVisibles.isEmpty() || botonesVisibles.equals("ninguno")) {
             return;
         }
 
-        // Mostrar solo los que el servidor indica
         String[] botones = botonesVisibles.split(",");
         for (String boton : botones) {
             switch (boton.trim()) {
@@ -922,7 +881,6 @@ public class PantallaDosJugadores implements Screen, GameController {
     public void respuestaCanto(int jugador, String respuesta, int resultado) {
         System.out.println("💬 Respuesta: J" + jugador + " - " + respuesta + " - resultado=" + resultado);
 
-        // ✅ SOLO mostrar mensaje visual
         String mensaje = respuesta.equalsIgnoreCase("quiero")
             ? "J" + jugador + " dice QUIERO"
             : "J" + jugador + " dice NO QUIERO";
@@ -934,7 +892,6 @@ public class PantallaDosJugadores implements Screen, GameController {
         return miNumeroJugador;
     }
 
-    // ========== MÉTODOS OBLIGATORIOS DE Screen ==========
     @Override public void resize(int width, int height) {}
     @Override public void pause() {}
     @Override public void resume() {}

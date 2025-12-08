@@ -12,7 +12,6 @@ public interface GameController {
     void limpiarMesa();
     void nuevaMano();
 
-    // 🆕 MÉTODOS PARA CANTOS
     void cantoRealizado(String tipoCanto, int jugador, String nombreCanto);
     void respuestaCanto(int jugador, String respuesta, int resultado);
     void jugadorAlMazo(int jugador);

@@ -78,7 +78,7 @@ public class ClientThread extends Thread {
             case "CartaJugada":
                 int jugadorQueJugo = Integer.parseInt(parts[1]);
                 int idCartaJugada = Integer.parseInt(parts[2]);
-                System.out.println("📨 ClientThread recibió: CartaJugada:" + jugadorQueJugo + ":" + idCartaJugada);
+                System.out.println(" ClientThread recibió: CartaJugada:" + jugadorQueJugo + ":" + idCartaJugada);
                 Gdx.app.postRunnable(() -> gameController.cartaJugada(jugadorQueJugo, idCartaJugada));
                 break;
 
@@ -99,47 +99,43 @@ public class ClientThread extends Thread {
                 break;
 
             case "LimpiarMesa":
-                System.out.println("🗑️ Limpiando mesa para siguiente tirada");
+                System.out.println("🗑 Limpiando mesa para siguiente tirada");
                 Gdx.app.postRunnable(() -> gameController.limpiarMesa());
                 break;
 
             case "NuevaMano":
-                System.out.println("🔄 Nueva mano - Limpiando TODO");
+                System.out.println(" Nueva mano - Limpiando TODO");
                 Gdx.app.postRunnable(() -> gameController.nuevaMano());
                 break;
 
-            // 🆕 CANTO REALIZADO (servidor notifica que hubo un canto)
             case "CantoRealizado":
                 String tipoCanto = parts[1]; // "truco" o "envido"
                 int jugadorQueCanto = Integer.parseInt(parts[2]);
                 String nombreCanto = parts[3];
-                System.out.println("🎺 Canto realizado: " + tipoCanto + " - J" + jugadorQueCanto + " - " + nombreCanto);
+                System.out.println(" Canto realizado: " + tipoCanto + " - J" + jugadorQueCanto + " - " + nombreCanto);
                 Gdx.app.postRunnable(() ->
                     gameController.cantoRealizado(tipoCanto, jugadorQueCanto, nombreCanto));
                 break;
 
-            // 🆕 RESPUESTA A CANTO
             case "RespuestaCanto":
                 int jugadorQueResponde = Integer.parseInt(parts[1]);
                 String respuesta = parts[2]; // "quiero" o "noquiero"
                 int resultado = Integer.parseInt(parts[3]);
-                System.out.println("💬 Respuesta a canto: J" + jugadorQueResponde + " - " + respuesta + " - resultado=" + resultado);
+                System.out.println(" Respuesta a canto: J" + jugadorQueResponde + " - " + respuesta + " - resultado=" + resultado);
                 Gdx.app.postRunnable(() ->
                     gameController.respuestaCanto(jugadorQueResponde, respuesta, resultado));
                 break;
 
-            // 🆕 JUGADOR SE FUE AL MAZO
             case "JugadorAlMazo":
                 int jugadorAlMazo = Integer.parseInt(parts[1]);
-                System.out.println("🃏 J" + jugadorAlMazo + " se fue al mazo");
+                System.out.println(" J" + jugadorAlMazo + " se fue al mazo");
                 Gdx.app.postRunnable(() ->
                     gameController.jugadorAlMazo(jugadorAlMazo));
                 break;
-            // En ClientThread.java - Agregar este case en processMessage()
 
             case "ActualizarBotones":
                 String botonesVisibles = parts[1];
-                System.out.println("🎮 Recibido estado de botones: " + botonesVisibles);
+                System.out.println(" Recibido estado de botones: " + botonesVisibles);
                 Gdx.app.postRunnable(() -> gameController.actualizarBotones(botonesVisibles));
                 break;
             case "Disconnect":
@@ -147,7 +143,7 @@ public class ClientThread extends Thread {
                 break;
 
             default:
-                System.out.println("⚠️ Mensaje desconocido: " + parts[0]);
+                System.out.println(" Mensaje desconocido: " + parts[0]);
                 break;
         }
     }
