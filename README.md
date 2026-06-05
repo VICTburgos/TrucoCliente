@@ -39,7 +39,7 @@ Haz click derecho sobre esa clase y selecciona "Run" 'lwjgl3.trucoarg.Lwjgl3Laun
 ## Estado Actual del Proyecto:
 Este es un prototipo jugable del clásico juego de cartas **Truco Argentino**, desarrollado en Java con el framework **LibGDX**. Esta versión implementa es el cliente del juego en red, se conecta al modo de dos jugadores por medio del servidor.
 
-[Ver la Propuesta Completa del Proyecto aquí](https://github.com/VICTburgos/proyecto-final-libGDX/wiki/TrucoARG)
+[Ver la Propuesta Completa del Proyecto aca](https://github.com/VICTburgos/proyecto-final-libGDX/wiki/TrucoARG)
 ---
 
 ### ▶️ Video de demostración (Es viejo, no representa el estado actual)
